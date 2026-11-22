@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <meta name="workshop-token" content="__WORKSHOP_TOKEN__">
+  <title>Sovereign Terminal Workshop — Intelligent Terminal &amp; Agentic CLI Mastery</title>
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('workshop-theme') || 'dark';
+        var resolved = saved === 'system'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : saved;
+        document.documentElement.setAttribute('data-theme', resolved);
+        document.documentElement.setAttribute('data-theme-mode', saved);
+      } catch (_) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Telemetry & Controls Bar -->
+    <header class="topbar" role="banner">
+      <div class="topbar-brand">
+        <span class="brand-glyph" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2.5" y="3.5" width="15" height="13" rx="2.5"/>
+            <path d="M6.5 8.5l2.5 2-2.5 2"/>
+            <path d="M10.5 12.5h3"/>
+          </svg>
+        </span>
+        <div>
+          <div class="brand-title">Sovereign Terminal Workshop</div>
+          <div class="brand-sub">Authored by <strong>Eloquent</strong> (<span class="mono">@mjeanhudson-dev</span>) · Microsoft Intelligent Terminal + Antigravity</div>
+        </div>
+      </div>
+
+      <div class="topbar-telemetry">
+        <div class="progress-pill" title="Completed interactive drills and chapter labs">
+          <span class="progress-label">Mastery</span>
+          <span class="progress-value tabular-nums" id="mastery-score">0 / 6 Chapters</span>
+          <span class="progress-bar"><span class="progress-fill" id="mastery-fill"></span></span>
+        </div>
+
+        <button type="button" class="btn btn-ghost" id="toggle-sandbox-btn" title="Toggle interactive terminal sandbox (`)">
+          <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="1.5" y="2.5" width="13" height="11" rx="2"/>
+            <path d="M4.5 6.5l2 1.75-2 1.75"/>
+            <path d="M8 10h3.5"/>
+          </svg>
+          <span>Sandbox Shell</span>
+        </button>
+
+        <div class="theme-segmented" role="group" aria-label="Color theme">
+          <button type="button" data-theme-choice="system">System</button>
+          <button type="button" data-theme-choice="light">Light</button>
+          <button type="button" data-theme-choice="dark" class="is-active">Dark</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace-grid">
+      <!-- Chapter Navigation Rail -->
+      <aside class="chapter-rail" aria-label="Workshop Chapters">
+        <div class="rail-section-label">Curriculum Arc</div>
+        <nav class="chapter-list" id="chapter-nav">
+          <!-- Populated dynamically by app.js -->
+        </nav>
+
+        <div class="rail-card">
+          <div class="rail-card-title">Live Host Telemetry</div>
+          <div class="rail-card-meta" id="rail-host-summary">
+            Ready to probe local binaries, ACP models, hooks, and prompt invariants.
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" id="rail-probe-btn">
+            <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/>
+              <path d="M13.5 2.5v2.75H10.75"/>
+            </svg>
+            <span>Run Live Host Probe</span>
+          </button>
+        </div>
+
+        <div class="rail-card">
+          <div class="rail-card-title">Active Rig Wiring</div>
+          <ul class="wiring-list">
+            <li><span>Terminal</span><code>wtai.exe v0.3.3213</code></li>
+            <li><span>Default</span><code>Google Antigravity</code></li>
+            <li><span>ACP Model</span><code>gemini-4-neon</code></li>
+            <li><span>Profile</span><code>gemini-4-neon-xhigh</code></li>
+            <li><span>Autonomy</span><code>yoloMode + autoFix</code></li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Main Interactive Stage -->
+      <main class="stage-column" id="main-stage" tabindex="-1">
+        <!-- Chapter content renders here via app.js -->
+      </main>
+    </div>
+
+    <!-- Collapsible Persistent Interactive Terminal Sandbox -->
+    <section class="sandbox-drawer is-collapsed" id="sandbox-drawer" aria-label="Interactive Terminal Practice Sandbox">
+      <div class="sandbox-header">
+        <div class="sandbox-title-group">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="sandbox-title">Interactive Terminal Practice Sandbox</span>
+          <span class="sandbox-cwd mono" id="sandbox-cwd">~/intelligent-terminal-workshop</span>
+          <span class="sandbox-mode-pill" id="sandbox-drill-badge">Free Practice</span>
+        </div>
+        <div class="sandbox-actions">
+          <button type="button" class="btn btn-ghost btn-xs" id="sandbox-clear-btn">Clear</button>
+          <button type="button" class="btn btn-ghost btn-xs" id="sandbox-hint-btn">Hint</button>
+          <button type="button" class="btn btn-ghost btn-xs" id="sandbox-close-btn">Minimize</button>
+        </div>
+      </div>
+
+      <div class="sandbox-presets" id="sandbox-presets" aria-label="Quick command presets">
+        <!-- Populated per active chapter -->
+      </div>
+
+      <div class="sandbox-output" id="sandbox-output" role="log" aria-live="polite"></div>
+
+      <form class="sandbox-input-row" id="sandbox-form" autocomplete="off">
+        <label for="sandbox-input" class="sr-only">Terminal command input</label>
+        <span class="prompt-prefix mono">PS Eloquent&gt;</span>
+        <input type="text" id="sandbox-input" class="sandbox-input mono" placeholder="Type a command (try: help, agy --dangerously-skip-permissions, git worktree list, wta hooks status)..." spellcheck="false">
+        <button type="submit" class="btn btn-primary btn-xs">Run</button>
+      </form>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
