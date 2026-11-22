@@ -1,0 +1,3510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sovereign Terminal Foundry — Interactive CLI &amp; Agentic Workflow Workshop</title>
+  <style>
+    :root {
+      --surface-canvas: #0f141b;
+      --surface-panel: #161e28;
+      --surface-elevated: #1c2734;
+      --surface-well: #0a0f15;
+      --border-subtle: #263446;
+      --border-strong: #374b63;
+      --ink-primary: #e6edf5;
+      --ink-secondary: #b4c2d4;
+      --ink-muted: #7f93ab;
+      --accent-amber: #e8a44c;
+      --accent-amber-dim: rgba(232, 164, 76, 0.14);
+      --accent-cerulean: #4fa3e0;
+      --accent-cerulean-dim: rgba(79, 163, 224, 0.14);
+      --accent-sage: #58b88a;
+      --accent-sage-dim: rgba(88, 184, 138, 0.14);
+      --accent-coral: #e06c65;
+      --accent-coral-dim: rgba(224, 108, 101, 0.14);
+      --font-ui: "Segoe UI Variable Text", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "Cascadia Code", "JetBrains Mono", "Fira Code", Consolas, ui-monospace, monospace;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--surface-canvas);
+      color: var(--ink-primary);
+      font-family: var(--font-ui);
+      font-size: 15px;
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent-cerulean); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 2px solid var(--accent-amber);
+      outline-offset: 2px;
+    }
+
+    /* Top Instrument Rail */
+    .rail {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(15, 20, 27, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-well);
+      border: 1px solid var(--accent-amber);
+      display: grid;
+      place-items: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--accent-amber);
+      letter-spacing: -0.04em;
+    }
+
+    .brand-text {
+      min-width: 0;
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 650;
+      letter-spacing: -0.015em;
+      color: var(--ink-primary);
+    }
+
+    .brand-text p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--ink-muted);
+    }
+
+    .chapter-stepper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .step-btn {
+      appearance: none;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-panel);
+      color: var(--ink-secondary);
+      font-family: var(--font-ui);
+      font-size: 12.5px;
+      font-weight: 500;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+    }
+
+    .step-btn:hover {
+      border-color: var(--border-strong);
+      color: var(--ink-primary);
+    }
+
+    .step-btn.active {
+      border-color: var(--accent-amber);
+      background: var(--accent-amber-dim);
+      color: var(--ink-primary);
+      font-weight: 600;
+    }
+
+    .step-btn.done {
+      border-color: rgba(88, 184, 138, 0.55);
+    }
+
+    .step-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-muted);
+    }
+
+    .step-btn.active .step-num { color: var(--accent-amber); }
+    .step-btn.done .step-num { color: var(--accent-sage); }
+
+    .rail-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12.5px;
+    }
+
+    .meter-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .meter-bar {
+      width: 96px;
+      height: 7px;
+      background: var(--surface-well);
+      border: 1px solid var(--border-subtle);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent-sage);
+      transition: width 240ms ease;
+    }
+
+    .meter-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-secondary);
+    }
+
+    .ghost-btn {
+      appearance: none;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--ink-secondary);
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .ghost-btn:hover {
+      border-color: var(--border-strong);
+      color: var(--ink-primary);
+    }
+
+    /* Main Split Workbench */
+    .workbench {
+      display: grid;
+      grid-template-columns: minmax(340px, 46%) minmax(380px, 54%);
+      min-height: calc(100vh - 61px);
+    }
+
+    .narrative-pane {
+      padding: 26px 28px 40px;
+      border-right: 1px solid var(--border-subtle);
+      overflow-y: auto;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sandbox-pane {
+      padding: 20px 22px 32px;
+      background: #0c1117;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Chapter Header & Bookend Superpowers */
+    .chapter-head {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .chapter-seq {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent-amber);
+    }
+
+    .chapter-title {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      max-width: 28ch;
+    }
+
+    .chapter-sub {
+      margin: 0;
+      color: var(--ink-secondary);
+      max-width: 66ch;
+    }
+
+    .bookend-card {
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-panel);
+    }
+
+    .bookend-start {
+      border-left: 3px solid var(--accent-amber);
+    }
+
+    .bookend-end {
+      border-left: 3px solid var(--accent-sage);
+      background: linear-gradient(180deg, rgba(88, 184, 138, 0.06), rgba(22, 30, 40, 0.96));
+    }
+
+    .bookend-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px 10px;
+      margin-bottom: 8px;
+    }
+
+    .bookend-tag {
+      font-size: 12.5px;
+      font-weight: 650;
+      color: var(--accent-amber);
+    }
+
+    .bookend-end .bookend-tag { color: var(--accent-sage); }
+
+    .time-badge {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      background: var(--surface-well);
+      border: 1px solid var(--border-subtle);
+      color: var(--ink-secondary);
+    }
+
+    .bookend-card h3 {
+      margin: 0 0 6px;
+      font-size: 16.5px;
+      font-weight: 650;
+      color: var(--ink-primary);
+    }
+
+    .bookend-card p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--ink-secondary);
+      max-width: 66ch;
+    }
+
+    .payoff-cmd-box {
+      margin-top: 12px;
+      background: var(--surface-well);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .payoff-cmd-box code {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--accent-cerulean);
+      word-break: break-all;
+    }
+
+    /* Interactive Command Anatomy Dissector */
+    .anatomy-panel {
+      background: var(--surface-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+    }
+
+    .section-heading {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 650;
+      color: var(--ink-primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .token-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .token-pill {
+      appearance: none;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 5px 9px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background: var(--surface-well);
+      color: var(--ink-primary);
+      cursor: pointer;
+      transition: border-color 120ms ease, background 120ms ease;
+    }
+
+    .token-pill:hover, .token-pill.selected {
+      border-color: var(--accent-cerulean);
+      background: var(--accent-cerulean-dim);
+      color: #ffffff;
+    }
+
+    .token-explain {
+      font-size: 13.5px;
+      color: var(--ink-secondary);
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-well);
+      border: 1px solid var(--border-subtle);
+      min-height: 44px;
+    }
+
+    .token-explain strong {
+      color: var(--accent-amber);
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    /* Missions */
+    .mission-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .mission-item {
+      background: var(--surface-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 13px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mission-item.passed {
+      border-color: rgba(88, 184, 138, 0.6);
+      background: rgba(88, 184, 138, 0.05);
+    }
+
+    .mission-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .mission-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .status-dot {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+      margin-top: 2px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-strong);
+      display: grid;
+      place-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-muted);
+    }
+
+    .mission-item.passed .status-dot {
+      border-color: var(--accent-sage);
+      background: var(--accent-sage);
+      color: #09130d;
+      font-weight: 700;
+    }
+
+    .mission-title {
+      font-weight: 600;
+      font-size: 14.5px;
+      color: var(--ink-primary);
+    }
+
+    .mission-desc {
+      font-size: 13.5px;
+      color: var(--ink-secondary);
+      margin-top: 2px;
+    }
+
+    .mission-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding-left: 30px;
+    }
+
+    .btn-sm {
+      appearance: none;
+      font-family: var(--font-ui);
+      font-size: 12px;
+      font-weight: 550;
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background: var(--surface-elevated);
+      color: var(--ink-primary);
+      cursor: pointer;
+    }
+
+    .btn-sm:hover { border-color: var(--accent-cerulean); }
+
+    .btn-primary {
+      background: var(--accent-amber);
+      border-color: var(--accent-amber);
+      color: #10151c;
+      font-weight: 650;
+    }
+
+    .btn-primary:hover {
+      background: #f2b462;
+      border-color: #f2b462;
+    }
+
+    .hint-box {
+      margin-left: 30px;
+      padding: 8px 10px;
+      background: var(--surface-well);
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--accent-amber);
+      display: none;
+    }
+
+    .hint-box.open { display: block; }
+
+    /* Chapter Footer Navigation */
+    .chapter-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    /* Recessed Live Terminal */
+    .terminal-shell {
+      background: var(--surface-well);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 360px;
+      max-height: 490px;
+    }
+
+    .term-header {
+      background: var(--surface-panel);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px 10px;
+      font-size: 12px;
+      color: var(--ink-muted);
+    }
+
+    .term-title {
+      font-family: var(--font-mono);
+      color: var(--ink-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1 1 200px;
+      word-break: break-word;
+    }
+
+    .term-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-sage);
+    }
+
+    .term-toolbar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .term-output {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .term-line { margin-bottom: 4px; }
+    .term-line.cmd { color: var(--ink-primary); }
+    .term-line.cmd .p-user { color: var(--accent-amber); font-weight: 600; }
+    .term-line.cmd .p-cwd { color: var(--accent-cerulean); }
+    .term-line.out { color: var(--ink-secondary); }
+    .term-line.ok { color: var(--accent-sage); }
+    .term-line.err { color: var(--accent-coral); }
+    .term-line.sys { color: var(--ink-muted); font-style: italic; }
+
+    .reverse-search-bar {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: #131c27;
+      border-top: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent-amber);
+    }
+
+    .reverse-search-bar.open { display: flex; }
+
+    .reverse-search-bar input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--ink-primary);
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      outline: none;
+    }
+
+    .term-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-top: 1px solid var(--border-subtle);
+      background: #0d131b;
+    }
+
+    .term-prompt-label {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      white-space: nowrap;
+      color: var(--accent-amber);
+    }
+
+    .term-prompt-label span { color: var(--accent-cerulean); }
+
+    .term-input {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: none;
+      color: var(--ink-primary);
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      outline: none;
+    }
+
+    .quick-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-top: 1px solid var(--border-subtle);
+      background: var(--surface-panel);
+      flex-wrap: wrap;
+    }
+
+    .chip-label {
+      font-size: 11.5px;
+      color: var(--ink-muted);
+      margin-right: 4px;
+    }
+
+    .cmd-chip {
+      appearance: none;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-well);
+      color: var(--ink-secondary);
+      cursor: pointer;
+    }
+
+    .cmd-chip:hover {
+      border-color: var(--accent-amber);
+      color: var(--ink-primary);
+    }
+
+    /* Live Visual Lab Panel */
+    .lab-panel {
+      background: var(--surface-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .lab-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .lab-header h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 650;
+      color: var(--ink-primary);
+    }
+
+    .lab-sub {
+      font-size: 12.5px;
+      color: var(--ink-muted);
+    }
+
+    /* Specific Lab Visuals */
+    .race-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .race-card {
+      background: var(--surface-well);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+    }
+
+    .race-card h4 {
+      margin: 0 0 6px;
+      font-size: 13px;
+      color: var(--ink-secondary);
+    }
+
+    .race-metric {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent-amber);
+    }
+
+    .race-card.cli .race-metric { color: var(--accent-sage); }
+
+    .race-bar {
+      margin-top: 8px;
+      height: 8px;
+      background: #17202b;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .race-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent-coral);
+      transition: width 350ms ease;
+    }
+
+    .race-card.cli .race-bar-fill { background: var(--accent-sage); }
+
+    .pipe-stages {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .pipe-stage {
+      min-width: 170px;
+      flex: 1;
+      background: var(--surface-well);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+    }
+
+    .pipe-stage-cmd {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent-cerulean);
+      margin-bottom: 4px;
+    }
+
+    .pipe-stage-count {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-amber);
+      margin-bottom: 6px;
+    }
+
+    .pipe-stage pre {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-secondary);
+      white-space: pre-wrap;
+      max-height: 92px;
+      overflow: hidden;
+    }
+
+    .git-svg-wrap {
+      background: var(--surface-well);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      overflow-x: auto;
+    }
+
+    .reflex-box {
+      background: var(--surface-well);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .reflex-prompt {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--ink-primary);
+    }
+
+    .kbd {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-strong);
+      color: var(--accent-amber);
+    }
+
+    .topology-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .node-box {
+      background: var(--surface-well);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: 12.5px;
+    }
+
+    .node-box.active-link {
+      border-color: var(--accent-sage);
+      box-shadow: 0 0 0 1px rgba(88, 184, 138, 0.25);
+    }
+
+    .bridge-pipe {
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink-muted);
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px dashed var(--border-strong);
+    }
+
+    .bridge-pipe.live {
+      color: var(--accent-sage);
+      border-color: var(--accent-sage);
+      background: var(--accent-sage-dim);
+    }
+
+    /* Chapter 7 Sovereign Launchpad */
+    .honest-banner {
+      background: rgba(79, 163, 224, 0.08);
+      border: 1px solid rgba(79, 163, 224, 0.35);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--ink-secondary);
+    }
+
+    .honest-banner strong { color: var(--ink-primary); }
+
+    .config-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .seg-group {
+      display: inline-flex;
+      background: var(--surface-well);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 3px;
+      flex-wrap: wrap;
+    }
+
+    .seg-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--ink-secondary);
+      font-family: var(--font-ui);
+      font-size: 12.5px;
+      font-weight: 550;
+      padding: 6px 11px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .seg-btn.active {
+      background: var(--accent-amber);
+      color: #0f141b;
+    }
+
+    .portal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 10px;
+    }
+
+    .portal-item {
+      background: var(--surface-well);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .portal-item:hover { border-color: var(--border-strong); }
+
+    .portal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .portal-name {
+      font-weight: 650;
+      font-size: 13.5px;
+      color: var(--ink-primary);
+    }
+
+    .channel-pill {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      white-space: nowrap;
+      border: 1px solid var(--border-subtle);
+      color: var(--accent-cerulean);
+      background: var(--accent-cerulean-dim);
+    }
+
+    .channel-pill.preview {
+      color: var(--accent-amber);
+      background: var(--accent-amber-dim);
+      border-color: rgba(232, 164, 76, 0.4);
+    }
+
+    .channel-pill.android {
+      color: var(--accent-sage);
+      background: var(--accent-sage-dim);
+      border-color: rgba(88, 184, 138, 0.4);
+    }
+
+    .portal-desc {
+      font-size: 12.5px;
+      color: var(--ink-secondary);
+      margin: 0;
+    }
+
+    .portal-footer {
+      margin-top: auto;
+      padding-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .http-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-sage);
+    }
+
+    .code-export {
+      background: var(--surface-well);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--ink-secondary);
+      overflow-x: auto;
+      white-space: pre;
+      max-height: 240px;
+    }
+
+    /* Bottom Handoff Prompt Bar (Playground Standard) */
+    .prompt-dock {
+      border-top: 1px solid var(--border-subtle);
+      background: var(--surface-panel);
+      padding: 14px 20px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .prompt-text {
+      font-size: 13px;
+      color: var(--ink-secondary);
+      background: var(--surface-well);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-family: var(--font-ui);
+    }
+
+    .prompt-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      margin-bottom: 5px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--accent-sage);
+      color: var(--ink-primary);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 160ms ease, transform 160ms ease;
+      z-index: 99;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 980px) {
+      .workbench { grid-template-columns: minmax(0, 1fr); }
+      .rail { padding: 12px 14px; }
+      .narrative-pane { border-right: none; border-bottom: 1px solid var(--border-subtle); padding: 18px 14px 28px; }
+      .sandbox-pane { padding: 14px; }
+      .race-grid, .topology-grid { grid-template-columns: minmax(0, 1fr); }
+      .prompt-dock { grid-template-columns: minmax(0, 1fr); padding: 14px; }
+      .portal-grid { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="rail">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">&gt;_</div>
+      <div class="brand-text">
+        <h1>Sovereign Terminal Foundry</h1>
+        <p>Interactive CLI, Git, Agentic &amp; PC/Android Workshop &bull; Authored by Eloquent (@mjeanhudson-dev)</p>
+      </div>
+    </div>
+
+    <nav class="chapter-stepper" id="chapterStepper" aria-label="Workshop chapters"></nav>
+
+    <div class="rail-status">
+      <div class="meter-wrap" title="Completed hands-on missions">
+        <div class="meter-bar"><div class="meter-fill" id="progressFill"></div></div>
+        <span class="meter-label" id="progressLabel">0/18</span>
+      </div>
+      <button class="ghost-btn" id="resetProgressBtn" type="button">Reset lab</button>
+    </div>
+  </header>
+
+  <main class="workbench">
+    <section class="narrative-pane" id="narrativePane" aria-live="polite"></section>
+
+    <section class="sandbox-pane">
+      <div class="terminal-shell" id="terminalShell">
+        <div class="term-header">
+          <div class="term-title">
+            <span class="term-indicator" aria-hidden="true"></span>
+            <span id="termHeaderTitle">foundry-sh &mdash; ~/foundry (real pipes, redirects, git, jq, gemini, agy)</span>
+          </div>
+          <div class="term-toolbar">
+            <button class="ghost-btn" id="btnHelpCmd" type="button">help</button>
+            <button class="ghost-btn" id="btnTreeCmd" type="button">tree</button>
+            <button class="ghost-btn" id="btnClearCmd" type="button">clear</button>
+          </div>
+        </div>
+
+        <div class="term-output" id="termOutput" role="log" aria-label="Interactive terminal output"></div>
+
+        <div class="reverse-search-bar" id="reverseSearchBar">
+          <span>(reverse-i-search):</span>
+          <input type="text" id="reverseSearchInput" placeholder="type to match prior command, Enter to accept, Esc to close" />
+          <span id="reverseSearchMatch" style="color: var(--accent-cerulean);"></span>
+        </div>
+
+        <form class="term-input-row" id="termForm" autocomplete="off">
+          <label class="term-prompt-label" for="termInput" id="termPromptLabel">eloquent<span>:~/foundry</span>$</label>
+          <input
+            class="term-input"
+            id="termInput"
+            type="text"
+            spellcheck="false"
+            autocapitalize="off"
+            autocomplete="off"
+            placeholder="Type a command, use Tab to autocomplete, or click a chip below..."
+          />
+        </form>
+
+        <div class="quick-chips" id="quickChips"></div>
+      </div>
+
+      <div class="lab-panel" id="liveLabPanel"></div>
+    </section>
+  </main>
+
+  <footer class="prompt-dock">
+    <div>
+      <div class="prompt-label">Live Agent Handoff Prompt (updates from your chapter progress and PC/Android stack selections)</div>
+      <div class="prompt-text" id="handoffPromptText"></div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn-sm btn-primary" id="copyPromptBtn" type="button">Copy prompt</button>
+      <button class="btn-sm" id="jumpLaunchpadBtn" type="button">Open PC/Android Launchpad</button>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // =========================================================================
+    // 1. VERIFIED OFFICIAL PC & ANDROID PORTAL CATALOG (HTTP 200 VERIFIED)
+    // =========================================================================
+    const PORTALS = [
+      {
+        id: 'ag-home',
+        name: 'Google Antigravity Portal',
+        url: 'https://antigravity.google',
+        platform: ['pc', 'bridge'],
+        channel: 'Official Platform',
+        channelClass: '',
+        http: 'HTTP 200',
+        desc: 'Official home for Google Antigravity Mission Control, desktop IDE, and agentic harness.'
+      },
+      {
+        id: 'ag-download',
+        name: 'Antigravity Desktop Downloads',
+        url: 'https://antigravity.google/download',
+        platform: ['pc', 'bridge'],
+        channel: 'PC Installer',
+        channelClass: '',
+        http: 'HTTP 200',
+        desc: 'Direct official desktop packages for Windows, macOS, and Linux.'
+      },
+      {
+        id: 'ag-docs',
+        name: 'Antigravity Docs & CLI Reference',
+        url: 'https://antigravity.google/docs',
+        platform: ['pc', 'bridge'],
+        channel: 'Official Docs',
+        channelClass: '',
+        http: 'HTTP 200',
+        desc: 'Setup guides, slash commands (/plan, /teamwork), MCP config, and safety policies.'
+      },
+      {
+        id: 'ag-github',
+        name: 'google-antigravity on GitHub',
+        url: 'https://github.com/google-antigravity',
+        platform: ['pc', 'android', 'bridge'],
+        channel: 'Open Source',
+        channelClass: 'preview',
+        http: 'HTTP 200',
+        desc: 'Official GitHub org hosting antigravity-cli and antigravity-sdk-python.'
+      },
+      {
+        id: 'gemini-cli-gh',
+        name: 'Gemini CLI GitHub (Latest / Preview / Nightly)',
+        url: 'https://github.com/google-gemini/gemini-cli',
+        platform: ['pc', 'android', 'bridge'],
+        channel: 'Preview + Nightly',
+        channelClass: 'preview',
+        http: 'HTTP 200',
+        desc: 'Official open-source terminal agent with @latest (weekly), @preview (Tuesdays), and @nightly (daily main).'
+      },
+      {
+        id: 'gemini-cli-site',
+        name: 'Gemini CLI Hub (geminicli.com)',
+        url: 'https://geminicli.com',
+        platform: ['pc', 'android', 'bridge'],
+        channel: 'Official CLI',
+        channelClass: '',
+        http: 'HTTP 200',
+        desc: 'Official Gemini CLI documentation, extensions, and MCP integration guides.'
+      },
+      {
+        id: 'ai-studio',
+        name: 'Google AI Studio',
+        url: 'https://aistudio.google.com/',
+        platform: ['pc', 'android', 'bridge'],
+        channel: 'Frontier Preview',
+        channelClass: 'preview',
+        http: 'HTTP 200',
+        desc: 'Direct browser access to frontier preview Gemini models and Gemini API key provisioning.'
+      },
+      {
+        id: 'gemini-api-docs',
+        name: 'Gemini API Developer Docs',
+        url: 'https://ai.google.dev/gemini-api/docs',
+        platform: ['pc', 'bridge'],
+        channel: 'Official API',
+        channelClass: '',
+        http: 'HTTP 200',
+        desc: 'Official REST, SDK, function-calling, caching, and model endpoint documentation.'
+      },
+      {
+        id: 'google-labs',
+        name: 'Google Labs (Early Experiments)',
+        url: 'https://labs.google/',
+        platform: ['pc', 'android', 'bridge'],
+        channel: 'Public Early Access',
+        channelClass: 'preview',
+        http: 'HTTP 200',
+        desc: 'Official Google hub for opt-in experimental AI tools and early-stage testbeds.'
+      },
+      {
+        id: 'android-studio-preview',
+        name: 'Android Studio Preview (Canary & Beta)',
+        url: 'https://developer.android.com/studio/preview',
+        platform: ['pc', 'bridge'],
+        channel: 'Canary / Beta',
+        channelClass: 'preview',
+        http: 'HTTP 200',
+        desc: 'Bleeding-edge Android Studio builds with Gemini in Android Studio and BYOA agent tooling.'
+      },
+      {
+        id: 'dev-program',
+        name: 'Google Developer Program',
+        url: 'https://developers.google.com/program',
+        platform: ['pc', 'android', 'bridge'],
+        channel: 'Builder Recognition',
+        channelClass: 'preview',
+        http: 'HTTP 200',
+        desc: 'Official Google developer profile, badges, learning tracks, and builder preview perks.'
+      },
+      {
+        id: 'gde-program',
+        name: 'Google Developer Experts (GDE)',
+        url: 'https://developers.google.com/community/experts',
+        platform: ['pc', 'android', 'bridge'],
+        channel: 'Official Recognition',
+        channelClass: 'preview',
+        http: 'HTTP 200',
+        desc: 'Official public community recognition track for builders publishing open-source work, talks, and guides.'
+      },
+      {
+        id: 'termux-fdroid',
+        name: 'Termux on F-Droid (Required Android Build)',
+        url: 'https://f-droid.org/en/packages/com.termux/',
+        platform: ['android', 'bridge'],
+        channel: 'Android Sovereign',
+        channelClass: 'android',
+        http: 'HTTP 200',
+        desc: 'Maintained Linux terminal for Android. Always install via F-Droid or GitHub—NOT the deprecated Play Store package.'
+      },
+      {
+        id: 'termux-github',
+        name: 'Termux Direct APK Releases (GitHub)',
+        url: 'https://github.com/termux/termux-app/releases',
+        platform: ['android', 'bridge'],
+        channel: 'Direct APK',
+        channelClass: 'android',
+        http: 'HTTP 200',
+        desc: 'Signed universal & arm64 Termux APKs directly from upstream maintainers.'
+      },
+      {
+        id: 'android-beta',
+        name: 'Android Beta Program',
+        url: 'https://www.google.com/android/beta',
+        platform: ['android', 'bridge'],
+        channel: 'OS Beta Channel',
+        channelClass: 'android',
+        http: 'HTTP 200',
+        desc: 'Official over-the-air pre-release Android QPR and developer beta enrollment.'
+      },
+      {
+        id: 'gemini-android-play',
+        name: 'Google Gemini App (Android)',
+        url: 'https://play.google.com/store/apps/details?id=com.google.android.apps.bard',
+        platform: ['android', 'bridge'],
+        channel: 'Android App',
+        channelClass: 'android',
+        http: 'HTTP 200',
+        desc: 'Official mobile Gemini client. Note: Antigravity Play builds currently target specialized Googlebook hardware, so Termux + bridge is the real Android CLI path.'
+      },
+      {
+        id: 'adb-tools',
+        name: 'Android SDK Platform-Tools (ADB)',
+        url: 'https://developer.android.com/tools/releases/platform-tools',
+        platform: ['pc', 'android', 'bridge'],
+        channel: 'USB Bridge',
+        channelClass: 'android',
+        http: 'HTTP 200',
+        desc: 'Official adb binary enabling zero-latency USB tunneling (adb reverse tcp:8420 tcp:8420) between PC and Termux.'
+      },
+      {
+        id: 'tailscale-android',
+        name: 'Tailscale Private WireGuard Mesh (Android)',
+        url: 'https://tailscale.com/download/android',
+        platform: ['android', 'bridge'],
+        channel: 'Private Mesh',
+        channelClass: 'android',
+        http: 'HTTP 200',
+        desc: 'Peer-to-peer encrypted mesh so your phone SSHes into your home PC workstation from anywhere without exposing public ports.'
+      }
+    ];
+
+    // =========================================================================
+    // 2. CHAPTER CURRICULUM (START & END WITH CONCRETE END-USER SUPERPOWERS)
+    // =========================================================================
+    const CHAPTERS = [
+      {
+        id: 1,
+        short: 'X-Ray Nav',
+        title: 'Teleportation & X-Ray Vision',
+        subtitle: 'Stop hunting through nested folders with a mouse. Inspect entire directory trees and pinpoint hidden keys in milliseconds.',
+        openingSuperpower: {
+          badge: '40ms vs 2m 15s GUI hunting',
+          headline: 'Locate one misconfigured endpoint hidden inside 400 nested files in a single breath',
+          body: 'In a file explorer, finding where PORT or API_ENDPOINT is defined means opening folders, toggling hidden files, guessing filenames, and Ctrl+F-ing one file at a time. In a terminal, one command scans every subdirectory and prints exact file paths and line numbers immediately.'
+        },
+        anatomy: [
+          { tok: 'rg', detail: 'ripgrep: ultra-fast recursive text search across nested directories, respecting .gitignore automatically.' },
+          { tok: '"API_ENDPOINT"', detail: 'The exact search pattern (literal string or regular expression) to match inside file contents.' },
+          { tok: 'projects/', detail: 'Target directory subtree. Omit it to search your entire current working directory.' }
+        ],
+        chips: ['pwd', 'ls -la', 'tree', 'rg "API_ENDPOINT" projects/', 'find projects -name "*.json"'],
+        missions: [
+          {
+            id: 'm1_hidden',
+            title: 'Expose hidden dotfiles',
+            desc: 'List all files including dotfiles in ~/foundry so you can see .env.local and .bashrc.',
+            hint: 'ls -la',
+            sampleCmd: 'ls -la'
+          },
+          {
+            id: 'm1_search',
+            title: 'X-ray search for API_ENDPOINT',
+            desc: 'Search inside projects/ for the string API_ENDPOINT using rg or grep.',
+            hint: 'rg "API_ENDPOINT" projects/',
+            sampleCmd: 'rg "API_ENDPOINT" projects/'
+          },
+          {
+            id: 'm1_find',
+            title: 'Locate every JSON manifest by pattern',
+            desc: 'Use find to list all *.json files under projects/.',
+            hint: 'find projects -name "*.json"',
+            sampleCmd: 'find projects -name "*.json"'
+          }
+        ],
+        closingPayoff: {
+          badge: '3-Second Payoff Unlocked',
+          headline: 'Instant codebase & machine radar',
+          body: 'You can now drop into any unfamiliar repository—yours or an open-source codebase with 50,000 files—and locate the exact file, port, or secret reference in under three seconds.',
+          realCmd: 'rg -n "API_ENDPOINT|PORT" ./projects   # PowerShell & Termux identical'
+        },
+        labType: 'race'
+      },
+      {
+        id: 2,
+        short: 'Pipe Factory',
+        title: 'The Pipe Factory',
+        subtitle: 'Snap small single-purpose tools together with | to build instant data pipelines that outperform spreadsheets.',
+        openingSuperpower: {
+          badge: '0 Excel imports, 0 scripts',
+          headline: 'Turn a noisy server crash log into a ranked root-cause report on the fly',
+          body: 'GUI log viewers force you to scroll, highlight, and export CSVs. With UNIX/PowerShell pipes, the output of one command streams directly into the next—filtering errors, counting duplicates, ranking the worst offender, and saving a clean report in one line.'
+        },
+        anatomy: [
+          { tok: 'grep "ERROR"', detail: 'Stage 1: keeps only lines matching ERROR and discards INFO/WARN noise.' },
+          { tok: 'projects/api/server.log', detail: 'Input file streamed line by line without loading a GUI editor.' },
+          { tok: '|', detail: 'Pipe operator: wires stdout of the left command directly into stdin of the right command.' },
+          { tok: 'sort', detail: 'Stage 2: groups identical error lines adjacent to each other so uniq can count them.' },
+          { tok: '| uniq -c', detail: 'Stage 3: collapses adjacent duplicates and prefixes each line with its occurrence count.' },
+          { tok: '> errors.txt', detail: 'Redirect operator: writes the final clean summary straight to a new file on disk.' }
+        ],
+        chips: [
+          'cat projects/api/server.log',
+          'grep "ERROR" projects/api/server.log | wc -l',
+          'grep "ERROR" projects/api/server.log | sort | uniq -c | sort -rn',
+          'grep "ERROR" projects/api/server.log | sort | uniq -c > error-report.txt'
+        ],
+        missions: [
+          {
+            id: 'm2_count',
+            title: 'Count total ERROR lines via a pipe',
+            desc: 'Pipe grep "ERROR" projects/api/server.log into wc -l to measure incident volume.',
+            hint: 'grep "ERROR" projects/api/server.log | wc -l',
+            sampleCmd: 'grep "ERROR" projects/api/server.log | wc -l'
+          },
+          {
+            id: 'm2_rank',
+            title: 'Build a ranked error frequency table',
+            desc: 'Chain grep, sort, and uniq -c (optionally sort -rn) so the Pipe Stream Inspector lights up all stages.',
+            hint: 'grep "ERROR" projects/api/server.log | sort | uniq -c | sort -rn',
+            sampleCmd: 'grep "ERROR" projects/api/server.log | sort | uniq -c | sort -rn'
+          },
+          {
+            id: 'm2_redirect',
+            title: 'Persist a report to disk with >',
+            desc: 'Redirect any filtered output to error-report.txt using > and verify it exists.',
+            hint: 'grep "ERROR" projects/api/server.log | sort | uniq -c > error-report.txt',
+            sampleCmd: 'grep "ERROR" projects/api/server.log | sort | uniq -c > error-report.txt'
+          }
+        ],
+        closingPayoff: {
+          badge: '3-Second Payoff Unlocked',
+          headline: 'Every CLI tool becomes a Lego brick',
+          body: 'Watch the Live Pipe Stream Inspector on the right: you just built a custom log analytics engine from four timeless primitives—no IDE, no dependency install, works identically on Windows, Linux servers, and Android Termux.',
+          realCmd: 'grep "ERROR" server.log | sort | uniq -c | sort -rn | head -n 5'
+        },
+        labType: 'pipes'
+      },
+      {
+        id: 3,
+        short: 'JSON Alchemy',
+        title: 'API Probing & Bulk Alchemy',
+        subtitle: 'Inspect live JSON APIs with curl + jq and atomically rewrite configuration files with sed.',
+        openingSuperpower: {
+          badge: 'Zero Postman tabs',
+          headline: 'Interrogate a live service, isolate only degraded nodes, and flip staging to production atomically',
+          body: 'Instead of juggling browser dev tools, JSON formatters, and find-and-replace dialogs across 12 config files, curl + jq + sed let you pull structured truth straight from endpoints and apply surgical edits that are reproducible and scriptable.'
+        },
+        anatomy: [
+          { tok: 'curl -s', detail: 'Fetches an HTTP endpoint silently (suppressing progress meter so output pipes cleanly).' },
+          { tok: 'https://foundry.local/nodes', detail: 'Target API endpoint returning raw JSON telemetry.' },
+          { tok: '| jq', detail: 'Structured JSON processor: parses real JSON instead of brittle regex slicing.' },
+          { tok: "'.nodes[] | select(.status==\"degraded\") | .name'", detail: 'Iterates array items, filters only degraded nodes, and projects just their names.' }
+        ],
+        chips: [
+          'curl -s https://foundry.local/nodes',
+          'curl -s https://foundry.local/nodes | jq \'.nodes[] | select(.status=="degraded") | .name\'',
+          'cat projects/api/deploy.conf',
+          'sed -i \'s/staging/production/g\' projects/api/deploy.conf && cat projects/api/deploy.conf'
+        ],
+        missions: [
+          {
+            id: 'm3_curl',
+            title: 'Query the live telemetry API',
+            desc: 'Fetch JSON directly from https://foundry.local/nodes using curl -s.',
+            hint: 'curl -s https://foundry.local/nodes',
+            sampleCmd: 'curl -s https://foundry.local/nodes'
+          },
+          {
+            id: 'm3_jq',
+            title: 'Filter degraded nodes with jq',
+            desc: 'Pipe curl output into jq to extract only the names of nodes whose status is "degraded".',
+            hint: 'curl -s https://foundry.local/nodes | jq \'.nodes[] | select(.status=="degraded") | .name\'',
+            sampleCmd: 'curl -s https://foundry.local/nodes | jq \'.nodes[] | select(.status=="degraded") | .name\''
+          },
+          {
+            id: 'm3_sed',
+            title: 'Promote deploy.conf in-place with sed',
+            desc: 'Replace staging with production inside projects/api/deploy.conf using sed -i.',
+            hint: 'sed -i \'s/staging/production/g\' projects/api/deploy.conf',
+            sampleCmd: 'sed -i \'s/staging/production/g\' projects/api/deploy.conf'
+          }
+        ],
+        closingPayoff: {
+          badge: '3-Second Payoff Unlocked',
+          headline: 'Programmable control over every API and config file',
+          body: 'You can now inspect any REST API, verify exact fields in CI, and batch-transform configuration manifests in a single auditable line.',
+          realCmd: 'curl -s https://api.github.com/repos/google-gemini/gemini-cli/releases/latest | jq -r .tag_name'
+        },
+        labType: 'json'
+      },
+      {
+        id: 4,
+        short: 'Git Time Travel',
+        title: 'Time Travel & Parallel Universes',
+        subtitle: 'Branch in 20 milliseconds, inspect line-by-line diffs, and ship fearless commits while watching the live commit graph mutate.',
+        openingSuperpower: {
+          badge: 'Zero "final_v4_BACKUP.zip"',
+          headline: 'Spin up an isolated experimental branch, audit your exact diff, and lock in a reversible checkpoint',
+          body: 'Copying folders to "back up your work" breaks the moment two experiments collide. Git in the terminal turns your entire workspace into an instant time machine with cryptographic commit hashes and surgical line diffs.'
+        },
+        anatomy: [
+          { tok: 'git checkout -b', detail: 'Creates a brand-new branch pointer at your current commit and switches HEAD onto it immediately.' },
+          { tok: 'fix/retry-guard', detail: 'Descriptive branch name isolating your experiment from main.' },
+          { tok: '&&', detail: 'Logical AND chain: runs the next command only if the previous command exited with code 0.' },
+          { tok: 'git commit -m "..."', detail: 'Records a permanent, content-addressed snapshot of all staged files with an audit message.' }
+        ],
+        chips: [
+          'git status',
+          'git diff',
+          'git checkout -b fix/retry-guard',
+          'git add projects/web/app.js && git commit -m "fix: raise retry limit from 0 to 3"',
+          'git log --oneline'
+        ],
+        missions: [
+          {
+            id: 'm4_inspect',
+            title: 'Audit dirty working tree & exact diff',
+            desc: 'Run git status or git diff to inspect the modified file projects/web/app.js.',
+            hint: 'git diff',
+            sampleCmd: 'git diff'
+          },
+          {
+            id: 'm4_branch',
+            title: 'Create an isolated feature branch',
+            desc: 'Fork a new branch from main using git checkout -b <branch-name> and watch the SVG DAG update.',
+            hint: 'git checkout -b fix/retry-guard',
+            sampleCmd: 'git checkout -b fix/retry-guard'
+          },
+          {
+            id: 'm4_commit',
+            title: 'Stage and commit your verified change',
+            desc: 'Run git add . (or projects/web/app.js) followed by git commit -m "..." to grow the commit graph.',
+            hint: 'git add projects/web/app.js && git commit -m "fix: raise retry limit"',
+            sampleCmd: 'git add projects/web/app.js && git commit -m "fix: raise retry limit"'
+          }
+        ],
+        closingPayoff: {
+          badge: '3-Second Payoff Unlocked',
+          headline: 'Fearless experimentation with cryptographic undo',
+          body: 'Every bold refactor is now zero-risk: branch in milliseconds, prove the diff, commit cleanly, or switch back to main without leaving a single stray artifact.',
+          realCmd: 'git checkout -b exp/feature && git add -p && git commit -m "feat: verified slice"'
+        },
+        labType: 'git'
+      },
+      {
+        id: 5,
+        short: 'Reflex & Alias',
+        title: 'Muscle Memory, Aliases & Safe Chaining',
+        subtitle: 'Keep your hands on home row. Turn 90-character rituals into 2-letter aliases and master universal shell shortcuts.',
+        openingSuperpower: {
+          badge: '10x fewer keystrokes',
+          headline: 'Collapse an entire build-test-inspect ritual into one custom command you own forever',
+          body: 'Beginners retype long flags every day. Terminal veterans encode every repeated sequence into aliases, shell functions, and Ctrl+R history recall—so your environment gets smarter every week you use it.'
+        },
+        anatomy: [
+          { tok: 'alias', detail: 'Registers a shorthand command in your active shell (persist in ~/.bashrc or PowerShell $PROFILE).' },
+          { tok: "check='...'", detail: 'The new short name mapped to a full validated pipeline.' },
+          { tok: '&&', detail: 'Fail-fast chain: if lint or tests fail, deployment never runs.' },
+          { tok: 'Ctrl+R', detail: 'Interactive reverse history search—recall any command you typed weeks ago in 3 keystrokes.' }
+        ],
+        chips: [
+          'alias errs=\'grep "ERROR" projects/api/server.log | wc -l\'',
+          'errs',
+          'export AETHER_MODE=sovereign && env',
+          'history'
+        ],
+        missions: [
+          {
+            id: 'm5_alias',
+            title: 'Create and invoke your own shell alias',
+            desc: 'Define an alias (for example alias errs=\'grep "ERROR" projects/api/server.log | wc -l\') and then run your new alias.',
+            hint: 'alias errs=\'grep "ERROR" projects/api/server.log | wc -l\' && errs',
+            sampleCmd: 'alias errs=\'grep "ERROR" projects/api/server.log | wc -l\' && errs'
+          },
+          {
+            id: 'm5_env',
+            title: 'Export an environment variable & chain safely',
+            desc: 'Use export KEY=VALUE && env to set a session variable and verify it in one fail-fast chain.',
+            hint: 'export AETHER_MODE=sovereign && env',
+            sampleCmd: 'export AETHER_MODE=sovereign && env'
+          },
+          {
+            id: 'm5_reflex',
+            title: 'Clear the 4-shortcut Reflex Arena below',
+            desc: 'Complete all 4 interactive keyboard shortcut prompts in the Reflex Arena (or press Ctrl+R inside the terminal).',
+            hint: 'Click "Start Reflex Drill" in the panel below the terminal.',
+            sampleCmd: 'history'
+          }
+        ],
+        closingPayoff: {
+          badge: '3-Second Payoff Unlocked',
+          headline: 'Your shell compounds around your personal workflow',
+          body: 'With Ctrl+R recall, Tab completion, fail-fast && chains, and custom aliases, every friction point you eliminate stays eliminated permanently.',
+          realCmd: 'alias ship="git status -sb && npm test && echo READY_TO_SHIP"'
+        },
+        labType: 'reflex'
+      },
+      {
+        id: 6,
+        short: 'Agentic Bridge',
+        title: 'Agentic Terminal & PC↔Android Bridge',
+        subtitle: 'Stop copy-pasting code out of browser chatboxes. Pipe real logs into Gemini CLI, steer Antigravity agents, and link your Android Termux node.',
+        openingSuperpower: {
+          badge: 'Direct repo + mobile telemetry',
+          headline: 'Pipe live server errors straight into Gemini CLI and bridge your PC workstation to Android Termux over USB',
+          body: 'Browser chat forces you to manually copy files in and copy fixes out. Terminal-native AI harnesses (Gemini CLI & Antigravity CLI) read your real filesystem, run tests, inspect git diffs, and sync cleanly with your sovereign Android Termux node via adb reverse or WireGuard.'
+        },
+        anatomy: [
+          { tok: 'grep "ERROR" ... |', detail: 'Feeds ONLY the minimal failing delta (high signal, low token burn) instead of whole files.' },
+          { tok: 'gemini -p "diagnose"', detail: 'Invokes official @google/gemini-cli in non-interactive headless prompt mode over stdin.' },
+          { tok: 'agy /plan', detail: 'Launches an Antigravity CLI structured planning/execution workflow in the current repo.' },
+          { tok: 'adb reverse tcp:8420 tcp:8420', detail: 'Tunnels localhost:8420 on your Android Termux shell directly to your PC workstation over USB.' }
+        ],
+        chips: [
+          'grep "ERROR" projects/api/server.log | gemini -p "diagnose root cause"',
+          'agy status',
+          'adb reverse tcp:8420 tcp:8420 && aether-sync'
+        ],
+        missions: [
+          {
+            id: 'm6_gemini',
+            title: 'Pipe real error logs into Gemini CLI',
+            desc: 'Stream filtered ERROR rows directly into gemini -p "diagnose" without copying a single line by hand.',
+            hint: 'grep "ERROR" projects/api/server.log | gemini -p "diagnose"',
+            sampleCmd: 'grep "ERROR" projects/api/server.log | gemini -p "diagnose"'
+          },
+          {
+            id: 'm6_agy',
+            title: 'Inspect Antigravity CLI harness state',
+            desc: 'Run agy status or agy /plan to verify active agent workspace bindings and verification gates.',
+            hint: 'agy status',
+            sampleCmd: 'agy status'
+          },
+          {
+            id: 'm6_bridge',
+            title: 'Bring up the PC↔Android USB ADB Bridge',
+            desc: 'Run adb reverse tcp:8420 tcp:8420 && aether-sync and watch the Dual-Node Topology light up.',
+            hint: 'adb reverse tcp:8420 tcp:8420 && aether-sync',
+            sampleCmd: 'adb reverse tcp:8420 tcp:8420 && aether-sync'
+          }
+        ],
+        closingPayoff: {
+          badge: '3-Second Payoff Unlocked',
+          headline: 'Autonomous agent workflows across both PC and Android',
+          body: 'You now know how to pipe minimal error deltas straight to frontier CLI agents and pair your desktop rig with an offline-capable Android Termux terminal.',
+          realCmd: 'git diff | gemini -p "review for bugs and regressions"'
+        },
+        labType: 'bridge'
+      },
+      {
+        id: 7,
+        short: 'PC & Android Portals',
+        title: 'The Sovereign Launchpad: PC & Android Portals',
+        subtitle: 'Graduate from sandbox to live hardware. Configure your OS and release track, copy your verified bootstrap script, and launch directly into official downloads and developer recognition tracks.',
+        openingSuperpower: {
+          badge: '18 HTTP-200 Verified Official Links',
+          headline: 'One unified cockpit for Desktop Antigravity, Gemini CLI Preview/Nightly, Android Termux, and Google Developer Recognition',
+          body: 'Every command you practiced in Chapters 1–6 translates 1:1 onto your real Windows/macOS/Linux PC and Android phone. Pick your target platform and release velocity below to generate your ready-to-run bootstrap script and jump directly to official portals.'
+        },
+        anatomy: [
+          { tok: '@google/gemini-cli@preview', detail: 'Official weekly Tuesday preview release channel on npm (or swap to @nightly for daily main builds).' },
+          { tok: '--ignore-scripts', detail: 'Essential Android Termux fix: skips native node-gyp Android NDK builds (tree-sitter) so Gemini CLI installs cleanly on mobile.' },
+          { tok: 'antigravity.google/download', detail: 'Official desktop installer portal for Antigravity App, IDE, and unified Google auth.' },
+          { tok: 'developers.google.com/program', detail: 'Official Google Developer Program & GDE recognition tracks for publishing real open-source work.' }
+        ],
+        chips: ['open-portal', 'gemini --version', 'agy /doctor', 'aether-sync'],
+        missions: [],
+        closingPayoff: {
+          badge: 'Workshop Complete — Sovereign Operator Ready',
+          headline: 'Your terminal is now a composable studio across PC and Android',
+          body: 'Run the companion local practice scripts (scripts/Start-TerminalLab.ps1 on Windows or scripts/start-termux-lab.sh in Android Termux) to repeat every workflow on real files, real git, and live official CLIs.',
+          realCmd: 'npm install -g @google/gemini-cli@preview   # Add --ignore-scripts inside Android Termux'
+        },
+        labType: 'launchpad'
+      }
+    ];
+
+    // =========================================================================
+    // 3. INITIAL VIRTUAL FILESYSTEM + GIT STATE
+    // =========================================================================
+    function createInitialVFS() {
+      return {
+        '/': { type: 'dir', children: ['home'] },
+        '/home': { type: 'dir', children: ['eloquent'] },
+        '/home/eloquent': { type: 'dir', children: ['foundry'] },
+        '/home/eloquent/foundry': {
+          type: 'dir',
+          children: ['README.md', '.env.local', '.bashrc', 'projects']
+        },
+        '/home/eloquent/foundry/README.md': {
+          type: 'file',
+          content: '# Sovereign Terminal Foundry Sandbox\nWelcome to the interactive workspace.\nTry: ls -la, tree, rg "API_ENDPOINT" projects/\n'
+        },
+        '/home/eloquent/foundry/.env.local': {
+          type: 'file',
+          content: 'NODE_ENV=development\nLOCAL_BRIDGE_PORT=8420\nGEMINI_CHANNEL=preview\n'
+        },
+        '/home/eloquent/foundry/.bashrc': {
+          type: 'file',
+          content: '# Sovereign shell init\nexport EDITOR=code\nexport PATH="$HOME/.local/bin:$PATH"\n'
+        },
+        '/home/eloquent/foundry/projects': {
+          type: 'dir',
+          children: ['api', 'mobile', 'web']
+        },
+        '/home/eloquent/foundry/projects/api': {
+          type: 'dir',
+          children: ['config.json', 'server.log', 'nodes.json', 'deploy.conf']
+        },
+        '/home/eloquent/foundry/projects/api/config.json': {
+          type: 'file',
+          content: '{\n  "service": "foundry-gateway",\n  "API_ENDPOINT": "https://foundry.local/nodes",\n  "PORT": 8420,\n  "timeout_ms": 3000\n}\n'
+        },
+        '/home/eloquent/foundry/projects/api/server.log': {
+          type: 'file',
+          content: [
+            'INFO  gateway boot port=8420',
+            'ERROR E_TIMEOUT upstream=edge-us-west',
+            'WARN  cache-miss key=session:91',
+            'ERROR E_TIMEOUT upstream=edge-us-west',
+            'ERROR E_AUTH_EXPIRED token=oauth-7',
+            'INFO  healthcheck ok latency=14ms',
+            'ERROR E_TIMEOUT upstream=edge-us-west',
+            'ERROR E_RATE_LIMIT bucket=preview-api',
+            'ERROR E_AUTH_EXPIRED token=oauth-7',
+            'INFO  worker-pool synced active=4'
+          ].join('\n') + '\n'
+        },
+        '/home/eloquent/foundry/projects/api/nodes.json': {
+          type: 'file',
+          content: JSON.stringify({
+            cluster: 'sovereign-mesh',
+            nodes: [
+              { name: 'pc-workstation', status: 'healthy', latency_ms: 4, role: 'primary' },
+              { name: 'edge-us-west', status: 'degraded', latency_ms: 612, role: 'relay' },
+              { name: 'android-termux', status: 'healthy', latency_ms: 11, role: 'mobile-node' },
+              { name: 'preview-worker-2', status: 'degraded', latency_ms: 488, role: 'worker' }
+            ]
+          }, null, 2) + '\n'
+        },
+        '/home/eloquent/foundry/projects/api/deploy.conf': {
+          type: 'file',
+          content: 'MODE=staging\nRETRIES=3\nBRIDGE_PORT=8420\n'
+        },
+        '/home/eloquent/foundry/projects/mobile': {
+          type: 'dir',
+          children: ['termux-bridge.sh']
+        },
+        '/home/eloquent/foundry/projects/mobile/termux-bridge.sh': {
+          type: 'file',
+          content: '#!/usr/bin/env bash\n# PC <-> Android USB bridge\nadb reverse tcp:8420 tcp:8420\necho "Bridge active on 127.0.0.1:8420"\n'
+        },
+        '/home/eloquent/foundry/projects/web': {
+          type: 'dir',
+          children: ['app.js']
+        },
+        '/home/eloquent/foundry/projects/web/app.js': {
+          type: 'file',
+          content: '// Fixed working-tree version ready to inspect & commit\nexport const API_ENDPOINT = "https://foundry.local/nodes";\nexport const RETRY_LIMIT = 3;\n'
+        }
+      };
+    }
+
+    function createInitialGit() {
+      return {
+        headBranch: 'main',
+        branches: { main: 'a1c90f2' },
+        commits: [
+          { hash: '7e4b10d', parent: null, branch: 'main', msg: 'init: scaffold sovereign foundry' },
+          { hash: 'a1c90f2', parent: '7e4b10d', branch: 'main', msg: 'feat: add api gateway and mobile bridge' }
+        ],
+        staged: [],
+        modified: {
+          'projects/web/app.js': {
+            oldLine: 'export const RETRY_LIMIT = 0;',
+            newLine: 'export const RETRY_LIMIT = 3;'
+          }
+        }
+      };
+    }
+
+    // =========================================================================
+    // 4. SINGLE CENTRAL STATE OBJECT
+    // =========================================================================
+    const STORAGE_KEY = 'sovereign_terminal_foundry_v1';
+
+    function loadSaved() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    const saved = loadSaved();
+    const hashMatch = (typeof window !== 'undefined' && window.location && window.location.hash || '').match(/^#ch([1-7])$/i);
+    const initialChapter = hashMatch ? Number(hashMatch[1]) : (saved && saved.chapterId ? saved.chapterId : 1);
+
+    const state = {
+      chapterId: initialChapter,
+      completedMissions: new Set(saved && Array.isArray(saved.completedMissions) ? saved.completedMissions : []),
+      selectedTokenIdx: 0,
+      cwd: '/home/eloquent/foundry',
+      vfs: createInitialVFS(),
+      git: createInitialGit(),
+      aliases: { ll: 'ls -la' },
+      env: {
+        USER: 'eloquent',
+        HOME: '/home/eloquent',
+        SHELL: '/bin/foundry-sh',
+        GEMINI_CHANNEL: 'preview'
+      },
+      history: [],
+      historyPos: -1,
+      lastPipeTrace: null,
+      lastJsonData: null,
+      lastCliMs: null,
+      bridgeOnline: false,
+      agentActive: false,
+      aliasInvoked: false,
+      reflexIndex: 0,
+      reflexPassed: false,
+      reflexActive: false,
+      // Chapter 7 Launchpad Configurator
+      platform: saved && saved.platform ? saved.platform : 'pc',
+      channel: saved && saved.channel ? saved.channel : 'preview',
+      includeBridge: saved && typeof saved.includeBridge === 'boolean' ? saved.includeBridge : true
+    };
+
+    function persist() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          chapterId: state.chapterId,
+          completedMissions: Array.from(state.completedMissions),
+          platform: state.platform,
+          channel: state.channel,
+          includeBridge: state.includeBridge
+        }));
+      } catch (_) {}
+    }
+
+    // =========================================================================
+    // 5. VIRTUAL FILESYSTEM HELPERS
+    // =========================================================================
+    function resolvePath(inputPath) {
+      if (!inputPath || inputPath === '.') return state.cwd;
+      let p = inputPath.replace(/^~(?=$|\/)/, '/home/eloquent');
+      if (!p.startsWith('/')) p = state.cwd + '/' + p;
+      const parts = p.split('/');
+      const stack = [];
+      for (const part of parts) {
+        if (!part || part === '.') continue;
+        if (part === '..') stack.pop();
+        else stack.push(part);
+      }
+      return '/' + stack.join('/');
+    }
+
+    function shortCwd() {
+      return state.cwd.replace(/^\/home\/eloquent/, '~');
+    }
+
+    function ensureParentDir(fullPath) {
+      const idx = fullPath.lastIndexOf('/');
+      const parent = idx <= 0 ? '/' : fullPath.slice(0, idx);
+      const name = fullPath.slice(idx + 1);
+      const node = state.vfs[parent];
+      if (!node || node.type !== 'dir') return null;
+      return { parent, name, parentNode: node };
+    }
+
+    function writeVfsFile(fullPath, content, append) {
+      const info = ensureParentDir(fullPath);
+      if (!info) return { ok: false, err: 'No such parent directory' };
+      const existing = state.vfs[fullPath];
+      if (existing && existing.type === 'dir') return { ok: false, err: 'Target is a directory' };
+      const nextContent = append && existing ? existing.content + content : content;
+      state.vfs[fullPath] = { type: 'file', content: nextContent };
+      if (!info.parentNode.children.includes(info.name)) {
+        info.parentNode.children.push(info.name);
+      }
+      return { ok: true };
+    }
+
+    function collectFiles(rootPath, out) {
+      const node = state.vfs[rootPath];
+      if (!node) return;
+      if (node.type === 'file') {
+        out.push(rootPath);
+        return;
+      }
+      for (const child of node.children) {
+        const next = rootPath === '/' ? '/' + child : rootPath + '/' + child;
+        collectFiles(next, out);
+      }
+    }
+
+    function renderTree(rootPath, prefix, lines) {
+      const node = state.vfs[rootPath];
+      if (!node || node.type !== 'dir') return;
+      const kids = node.children.slice().sort();
+      kids.forEach((child, i) => {
+        const isLast = i === kids.length - 1;
+        const full = rootPath === '/' ? '/' + child : rootPath + '/' + child;
+        const childNode = state.vfs[full];
+        const branch = isLast ? '└── ' : '├── ';
+        lines.push(prefix + branch + child + (childNode && childNode.type === 'dir' ? '/' : ''));
+        if (childNode && childNode.type === 'dir') {
+          renderTree(full, prefix + (isLast ? '    ' : '│   '), lines);
+        }
+      });
+    }
+
+    // =========================================================================
+    // 6. REAL SHELL TOKENIZER, PIPE ENGINE, JQ-LITE, GIT & AGENT SIMULATOR
+    // =========================================================================
+    function splitTopLevel(str, delim) {
+      const parts = [];
+      let cur = '';
+      let quote = null;
+      for (let i = 0; i < str.length; i++) {
+        const ch = str[i];
+        if (quote) {
+          if (ch === quote) quote = null;
+          cur += ch;
+        } else if (ch === '"' || ch === "'") {
+          quote = ch;
+          cur += ch;
+        } else if (str.slice(i, i + delim.length) === delim) {
+          parts.push(cur.trim());
+          cur = '';
+          i += delim.length - 1;
+        } else {
+          cur += ch;
+        }
+      }
+      if (cur.trim()) parts.push(cur.trim());
+      return parts;
+    }
+
+    function tokenize(segment) {
+      const tokens = [];
+      let cur = '';
+      let quote = null;
+      for (let i = 0; i < segment.length; i++) {
+        const ch = segment[i];
+        if (quote) {
+          if (ch === quote) {
+            quote = null;
+          } else {
+            cur += ch;
+          }
+        } else if (ch === '"' || ch === "'") {
+          quote = ch;
+        } else if (/\s/.test(ch)) {
+          if (cur.length > 0) {
+            tokens.push(cur);
+            cur = '';
+          }
+        } else {
+          cur += ch;
+        }
+      }
+      if (cur.length > 0) tokens.push(cur);
+      return tokens;
+    }
+
+    function expandEnv(str) {
+      return str.replace(/\$([A-Z_][A-Z0-9_]*)/g, (_, k) => (k in state.env ? state.env[k] : ''));
+    }
+
+    function evalJq(expr, rawJson) {
+      let data;
+      try {
+        data = JSON.parse(rawJson);
+      } catch (e) {
+        return { code: 1, err: 'jq: parse error — input is not valid JSON' };
+      }
+      const clean = expr.trim();
+      state.lastJsonData = data;
+
+      if (clean === '.') {
+        return { code: 0, out: JSON.stringify(data, null, 2) };
+      }
+      // Support chained jq filters like .nodes[] | select(.status=="degraded") | .name
+      const steps = splitTopLevel(clean, '|');
+      let items = [data];
+      let isStream = false;
+
+      for (const step of steps) {
+        if (step === '.') continue;
+        if (step === 'length') {
+          items = items.map(x => (Array.isArray(x) || typeof x === 'string' ? x.length : Object.keys(x || {}).length));
+          continue;
+        }
+        const selectMatch = step.match(/^select\(\.([a-zA-Z0-9_]+)\s*==\s*["']([^"']+)["']\)$/);
+        if (selectMatch) {
+          const [, field, val] = selectMatch;
+          items = items.filter(x => x && String(x[field]) === val);
+          continue;
+        }
+        const arrMatch = step.match(/^\.([a-zA-Z0-9_]+)\[\]$/);
+        if (arrMatch) {
+          const key = arrMatch[1];
+          const next = [];
+          items.forEach(x => {
+            if (x && Array.isArray(x[key])) next.push(...x[key]);
+          });
+          items = next;
+          isStream = true;
+          continue;
+        }
+        const fieldMatch = step.match(/^\.([a-zA-Z0-9_]+)$/);
+        if (fieldMatch) {
+          const key = fieldMatch[1];
+          items = items.map(x => (x && key in x ? x[key] : null));
+          continue;
+        }
+        return { code: 1, err: 'jq: unsupported filter expression "' + step + '" (try ., .nodes[], select(.status=="degraded"), .name, length)' };
+      }
+
+      const formatted = items.map(v => (typeof v === 'string' ? '"' + v + '"' : JSON.stringify(v, null, 2))).join('\n');
+      return { code: 0, out: isStream || items.length > 1 ? formatted : formatted };
+    }
+
+    function execSingleStage(rawStage, stdinText) {
+      let stage = rawStage.trim();
+      if (!stage) return { code: 0, out: '', err: '' };
+
+      // Check for output redirection (> or >>) outside quotes
+      let redirectFile = null;
+      let redirectAppend = false;
+      const redirMatch = stage.match(/^(.*?)\s*(>>|>)\s*([^\s]+)\s*$/);
+      if (redirMatch && !stage.startsWith('alias ')) {
+        stage = redirMatch[1].trim();
+        redirectAppend = redirMatch[2] === '>>';
+        redirectFile = redirMatch[3].trim();
+      }
+
+      // Expand alias on first word (one level)
+      const firstSpace = stage.indexOf(' ');
+      const headWord = firstSpace === -1 ? stage : stage.slice(0, firstSpace);
+      if (headWord !== 'alias' && headWord !== 'unalias' && state.aliases[headWord]) {
+        state.aliasInvoked = true;
+        const rest = firstSpace === -1 ? '' : stage.slice(firstSpace);
+        stage = state.aliases[headWord] + rest;
+        if (stage.includes('|') || stage.includes('&&')) {
+          return runCommandLine(stage, true);
+        }
+      }
+
+      const tokens = tokenize(stage).map(t => (stage.startsWith('alias ') ? t : expandEnv(t)));
+      const cmd = tokens[0];
+      const args = tokens.slice(1);
+
+      let res = { code: 0, out: '', err: '' };
+
+      switch (cmd) {
+        case 'help':
+          res.out = [
+            'Built-in commands in foundry-sh:',
+            '  Navigation:  pwd, ls [-la], cd <dir>, tree, find <dir> -name <glob>',
+            '  Search/Text: cat, head [-n N], tail [-n N], wc [-l], rg <pat> [dir], grep [-i|-v] <pat> [file]',
+            '  Pipelines:   sort [-rn], uniq [-c], cut [-d<delim> -f<N>], | (pipe), > / >> (redirect), && (chain)',
+            '  Alchemy:     curl -s <url>, jq \'<filter>\', sed [-i] \'s/old/new/g\' <file>',
+            '  Git:         git status | diff | branch | checkout [-b] | add | commit -m | log',
+            '  Reflex:      alias name=\'cmd\', export K=V, env, history, clear',
+            '  Agentic:     gemini -p "<prompt>", agy [status|/plan|/doctor], adb reverse tcp:8420 tcp:8420, aether-sync, open-portal'
+          ].join('\n');
+          break;
+
+        case 'clear':
+          res = { code: 0, out: '', err: '', clear: true };
+          break;
+
+        case 'pwd':
+          res.out = state.cwd;
+          break;
+
+        case 'whoami':
+          res.out = state.env.USER;
+          break;
+
+        case 'uname':
+          res.out = 'FoundryOS 6.12 sovereign-x86_64/arm64-termux';
+          break;
+
+        case 'ls': {
+          let showAll = false;
+          let longFmt = false;
+          let target = state.cwd;
+          args.forEach(a => {
+            if (a.startsWith('-')) {
+              if (a.includes('a')) showAll = true;
+              if (a.includes('l')) longFmt = true;
+            } else {
+              target = resolvePath(a);
+            }
+          });
+          const node = state.vfs[target];
+          if (!node) {
+            res = { code: 1, out: '', err: 'ls: cannot access ' + target + ': No such file or directory' };
+          } else if (node.type === 'file') {
+            res.out = target.split('/').pop();
+          } else {
+            const kids = node.children.filter(c => showAll || !c.startsWith('.')).sort();
+            if (longFmt) {
+              res.out = kids.map(c => {
+                const full = target === '/' ? '/' + c : target + '/' + c;
+                const cn = state.vfs[full];
+                const isDir = cn && cn.type === 'dir';
+                const size = isDir ? '4096' : String((cn ? cn.content.length : 0)).padStart(4, ' ');
+                return (isDir ? 'drwxr-xr-x' : '-rw-r--r--') + '  1 eloquent  ' + size + '  Nov 22  ' + c + (isDir ? '/' : '');
+              }).join('\n');
+            } else {
+              res.out = kids.map(c => {
+                const full = target === '/' ? '/' + c : target + '/' + c;
+                return state.vfs[full] && state.vfs[full].type === 'dir' ? c + '/' : c;
+              }).join('  ');
+            }
+          }
+          break;
+        }
+
+        case 'cd': {
+          const target = resolvePath(args[0] || '~');
+          const node = state.vfs[target];
+          if (!node || node.type !== 'dir') {
+            res = { code: 1, out: '', err: 'cd: no such directory: ' + (args[0] || '~') };
+          } else {
+            state.cwd = target;
+          }
+          break;
+        }
+
+        case 'tree': {
+          const target = resolvePath(args[0] || '.');
+          if (!state.vfs[target]) {
+            res = { code: 1, out: '', err: 'tree: path not found' };
+          } else {
+            const lines = [args[0] || '.'];
+            renderTree(target, '', lines);
+            res.out = lines.join('\n');
+          }
+          break;
+        }
+
+        case 'cat': {
+          if (args.length === 0) {
+            res.out = stdinText;
+          } else {
+            const parts = [];
+            for (const a of args) {
+              const fp = resolvePath(a);
+              const n = state.vfs[fp];
+              if (!n || n.type !== 'file') {
+                return { code: 1, out: '', err: 'cat: ' + a + ': No such file' };
+              }
+              parts.push(n.content.replace(/\n$/, ''));
+            }
+            res.out = parts.join('\n');
+          }
+          break;
+        }
+
+        case 'echo':
+          res.out = args.join(' ');
+          break;
+
+        case 'mkdir': {
+          if (!args[0]) { res = { code: 1, out: '', err: 'mkdir: missing operand' }; break; }
+          const fp = resolvePath(args[0]);
+          const info = ensureParentDir(fp);
+          if (!info) { res = { code: 1, out: '', err: 'mkdir: parent directory not found' }; break; }
+          if (!state.vfs[fp]) {
+            state.vfs[fp] = { type: 'dir', children: [] };
+            info.parentNode.children.push(info.name);
+          }
+          res.out = '';
+          break;
+        }
+
+        case 'touch': {
+          if (!args[0]) { res = { code: 1, out: '', err: 'touch: missing file operand' }; break; }
+          const fp = resolvePath(args[0]);
+          if (!state.vfs[fp]) {
+            const w = writeVfsFile(fp, '', false);
+            if (!w.ok) res = { code: 1, out: '', err: 'touch: ' + w.err };
+          }
+          break;
+        }
+
+        case 'find': {
+          let base = state.cwd;
+          let pattern = '*';
+          for (let i = 0; i < args.length; i++) {
+            if (args[i] === '-name' && args[i + 1]) {
+              pattern = args[++i];
+            } else if (!args[i].startsWith('-')) {
+              base = resolvePath(args[i]);
+            }
+          }
+          if (!state.vfs[base]) {
+            res = { code: 1, out: '', err: 'find: no such path' };
+            break;
+          }
+          const files = [];
+          collectFiles(base, files);
+          const regex = new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
+          const hits = files.filter(f => regex.test(f.split('/').pop())).map(f => f.replace(state.cwd + '/', ''));
+          res.out = hits.join('\n');
+          break;
+        }
+
+        case 'rg': {
+          const flags = args.filter(a => a.startsWith('-'));
+          const pos = args.filter(a => !a.startsWith('-'));
+          const pat = pos[0];
+          const target = resolvePath(pos[1] || '.');
+          if (!pat) { res = { code: 1, out: '', err: 'rg: missing search pattern' }; break; }
+          const ignoreCase = flags.some(f => f.includes('i'));
+          const rx = new RegExp(pat, ignoreCase ? 'i' : '');
+          const files = [];
+          collectFiles(target, files);
+          const matches = [];
+          files.forEach(fp => {
+            const rel = fp.replace(state.cwd + '/', '');
+            const lines = state.vfs[fp].content.split('\n');
+            lines.forEach((line, idx) => {
+              if (rx.test(line)) matches.push(rel + ':' + (idx + 1) + ':' + line.trim());
+            });
+          });
+          state.lastCliMs = 38;
+          res.out = matches.length ? matches.join('\n') : '(no matches)';
+          break;
+        }
+
+        case 'grep': {
+          const flags = args.filter(a => a.startsWith('-'));
+          const pos = args.filter(a => !a.startsWith('-'));
+          const pat = pos[0];
+          if (!pat) { res = { code: 1, out: '', err: 'grep: missing pattern' }; break; }
+          const ignoreCase = flags.some(f => f.includes('i'));
+          const invert = flags.some(f => f.includes('v'));
+          const rx = new RegExp(pat, ignoreCase ? 'i' : '');
+          let sourceText = stdinText;
+          if (pos[1]) {
+            const fp = resolvePath(pos[1]);
+            const n = state.vfs[fp];
+            if (!n) { res = { code: 1, out: '', err: 'grep: ' + pos[1] + ': No such file' }; break; }
+            if (n.type === 'dir') {
+              const files = [];
+              collectFiles(fp, files);
+              const hits = [];
+              files.forEach(f => {
+                const rel = f.replace(state.cwd + '/', '');
+                state.vfs[f].content.split('\n').forEach((l, idx) => {
+                  if (rx.test(l) !== invert) hits.push(rel + ':' + (idx + 1) + ':' + l);
+                });
+              });
+              state.lastCliMs = 42;
+              res.out = hits.join('\n');
+              break;
+            }
+            sourceText = n.content;
+          }
+          const matched = sourceText.split('\n').filter(l => l.length > 0 && (rx.test(l) !== invert));
+          res.out = matched.join('\n');
+          break;
+        }
+
+        case 'sort': {
+          const reverse = args.some(a => a.includes('r'));
+          const numeric = args.some(a => a.includes('n'));
+          const lines = stdinText.split('\n').filter(Boolean);
+          lines.sort((a, b) => {
+            if (numeric) {
+              const na = parseFloat(a.trim()) || 0;
+              const nb = parseFloat(b.trim()) || 0;
+              return reverse ? nb - na : na - nb;
+            }
+            return reverse ? b.localeCompare(a) : a.localeCompare(b);
+          });
+          res.out = lines.join('\n');
+          break;
+        }
+
+        case 'uniq': {
+          const countMode = args.includes('-c');
+          const lines = stdinText.split('\n').filter(Boolean);
+          const out = [];
+          let prev = null;
+          let count = 0;
+          const flush = () => {
+            if (prev !== null) out.push(countMode ? String(count).padStart(4, ' ') + ' ' + prev : prev);
+          };
+          for (const line of lines) {
+            if (line === prev) {
+              count++;
+            } else {
+              flush();
+              prev = line;
+              count = 1;
+            }
+          }
+          flush();
+          res.out = out.join('\n');
+          break;
+        }
+
+        case 'cut': {
+          let delim = ' ';
+          let field = 1;
+          for (let i = 0; i < args.length; i++) {
+            if (args[i].startsWith('-d')) delim = args[i].length > 2 ? args[i].slice(2) : (args[++i] || ' ');
+            else if (args[i].startsWith('-f')) field = parseInt(args[i].length > 2 ? args[i].slice(2) : args[++i], 10) || 1;
+          }
+          res.out = stdinText.split('\n').filter(Boolean).map(l => l.split(delim)[field - 1] || '').join('\n');
+          break;
+        }
+
+        case 'wc': {
+          const lines = stdinText ? stdinText.split('\n').filter(Boolean) : [];
+          if (args.includes('-l')) res.out = String(lines.length);
+          else {
+            const words = stdinText.trim() ? stdinText.trim().split(/\s+/).length : 0;
+            res.out = lines.length + ' lines  ' + words + ' words  ' + stdinText.length + ' bytes';
+          }
+          break;
+        }
+
+        case 'head': {
+          let n = 5;
+          const idx = args.indexOf('-n');
+          if (idx !== -1 && args[idx + 1]) n = parseInt(args[idx + 1], 10) || 5;
+          res.out = stdinText.split('\n').filter(Boolean).slice(0, n).join('\n');
+          break;
+        }
+
+        case 'tail': {
+          let n = 5;
+          const idx = args.indexOf('-n');
+          if (idx !== -1 && args[idx + 1]) n = parseInt(args[idx + 1], 10) || 5;
+          const lines = stdinText.split('\n').filter(Boolean);
+          res.out = lines.slice(Math.max(0, lines.length - n)).join('\n');
+          break;
+        }
+
+        case 'curl': {
+          const url = args.find(a => !a.startsWith('-')) || '';
+          if (url.includes('nodes') || url.includes('foundry.local')) {
+            res.out = state.vfs['/home/eloquent/foundry/projects/api/nodes.json'].content.trim();
+            try { state.lastJsonData = JSON.parse(res.out); } catch (_) {}
+          } else if (url.includes('health')) {
+            res.out = JSON.stringify({ status: 'ok', bridge: state.bridgeOnline ? 'connected' : 'standby', port: 8420 }, null, 2);
+          } else {
+            res = { code: 1, out: '', err: 'curl: try https://foundry.local/nodes or https://foundry.local/health' };
+          }
+          break;
+        }
+
+        case 'jq': {
+          const filter = args.filter(a => !a.startsWith('-'))[0] || '.';
+          const fileArg = args.filter(a => !a.startsWith('-'))[1];
+          let payload = stdinText;
+          if (fileArg) {
+            const fp = resolvePath(fileArg);
+            if (!state.vfs[fp]) { res = { code: 1, out: '', err: 'jq: file not found: ' + fileArg }; break; }
+            payload = state.vfs[fp].content;
+          }
+          const jqRes = evalJq(filter, payload);
+          res = { code: jqRes.code, out: jqRes.out || '', err: jqRes.err || '' };
+          break;
+        }
+
+        case 'sed': {
+          const inPlace = args.includes('-i');
+          const pos = args.filter(a => !a.startsWith('-'));
+          const expr = pos[0] || '';
+          const fileArg = pos[1];
+          const m = expr.match(/^s\/([^/]+)\/([^/]*)\/(g?)$/);
+          if (!m) { res = { code: 1, out: '', err: 'sed: expected s/old/new/g' }; break; }
+          const [, from, to, gflag] = m;
+          const rx = new RegExp(from, gflag ? 'g' : '');
+          let text = stdinText;
+          let fp = null;
+          if (fileArg) {
+            fp = resolvePath(fileArg);
+            if (!state.vfs[fp] || state.vfs[fp].type !== 'file') {
+              res = { code: 1, out: '', err: 'sed: file not found: ' + fileArg };
+              break;
+            }
+            text = state.vfs[fp].content;
+          }
+          const updated = text.replace(rx, to);
+          if (inPlace && fp) {
+            state.vfs[fp].content = updated;
+            res.out = 'Updated ' + fileArg + ' in place.';
+          } else {
+            res.out = updated.replace(/\n$/, '');
+          }
+          break;
+        }
+
+        case 'git': {
+          const sub = args[0];
+          const g = state.git;
+          if (sub === 'status') {
+            const modKeys = Object.keys(g.modified);
+            const lines = ['On branch ' + g.headBranch];
+            if (g.staged.length) {
+              lines.push('Changes to be committed:');
+              g.staged.forEach(f => lines.push('  modified:   ' + f));
+            }
+            if (modKeys.length) {
+              lines.push('Changes not staged for commit:');
+              modKeys.forEach(f => lines.push('  modified:   ' + f));
+            }
+            if (!g.staged.length && !modKeys.length) {
+              lines.push('nothing to commit, working tree clean');
+            }
+            res.out = lines.join('\n');
+          } else if (sub === 'diff') {
+            const modKeys = Object.keys(g.modified);
+            if (!modKeys.length) {
+              res.out = '(working tree has no unstaged diffs)';
+            } else {
+              res.out = modKeys.map(f => {
+                const d = g.modified[f];
+                return [
+                  'diff --git a/' + f + ' b/' + f,
+                  '--- a/' + f,
+                  '+++ b/' + f,
+                  '@@ -2,2 +2,2 @@',
+                  '-' + d.oldLine,
+                  '+' + d.newLine
+                ].join('\n');
+              }).join('\n\n');
+            }
+          } else if (sub === 'branch') {
+            if (args[1]) {
+              g.branches[args[1]] = g.branches[g.headBranch];
+              res.out = 'Created branch ' + args[1];
+            } else {
+              res.out = Object.keys(g.branches).map(b => (b === g.headBranch ? '* ' + b : '  ' + b)).join('\n');
+            }
+          } else if (sub === 'checkout') {
+            if (args[1] === '-b' && args[2]) {
+              const name = args[2];
+              g.branches[name] = g.branches[g.headBranch];
+              g.headBranch = name;
+              res.out = "Switched to a new branch '" + name + "'";
+            } else if (args[1] && g.branches[args[1]]) {
+              g.headBranch = args[1];
+              res.out = "Switched to branch '" + args[1] + "'";
+            } else {
+              res = { code: 1, out: '', err: 'git checkout: specify an existing branch or -b <new-branch>' };
+            }
+          } else if (sub === 'add') {
+            const target = args[1];
+            if (!target) { res = { code: 1, out: '', err: 'git add: specify a file or .' }; break; }
+            const modKeys = Object.keys(g.modified);
+            if (target === '.' || target === '-A') {
+              modKeys.forEach(k => { if (!g.staged.includes(k)) g.staged.push(k); delete g.modified[k]; });
+              res.out = 'Staged ' + modKeys.length + ' file(s).';
+            } else if (g.modified[target]) {
+              if (!g.staged.includes(target)) g.staged.push(target);
+              delete g.modified[target];
+              res.out = 'Staged ' + target;
+            } else {
+              res.out = 'Nothing new to stage for ' + target;
+            }
+          } else if (sub === 'commit') {
+            const mIdx = args.indexOf('-m');
+            const msg = mIdx !== -1 ? args[mIdx + 1] : null;
+            if (!msg) { res = { code: 1, out: '', err: 'git commit: pass -m "<message>"' }; break; }
+            if (!g.staged.length) { res = { code: 1, out: '', err: 'nothing staged to commit (run git add first)' }; break; }
+            const hash = Math.random().toString(16).slice(2, 9);
+            const parent = g.branches[g.headBranch];
+            g.commits.push({ hash, parent, branch: g.headBranch, msg });
+            g.branches[g.headBranch] = hash;
+            const count = g.staged.length;
+            g.staged = [];
+            res.out = '[' + g.headBranch + ' ' + hash + '] ' + msg + '\n ' + count + ' file changed, 1 insertion(+), 1 deletion(-)';
+          } else if (sub === 'log') {
+            res.out = g.commits.slice().reverse().map(c => {
+              const refs = Object.entries(g.branches).filter(([, h]) => h === c.hash).map(([b]) => (b === g.headBranch ? 'HEAD -> ' + b : b));
+              const refStr = refs.length ? ' (' + refs.join(', ') + ')' : '';
+              return c.hash + refStr + ' ' + c.msg;
+            }).join('\n');
+          } else {
+            res = { code: 1, out: '', err: 'git: supported subcommands: status, diff, branch, checkout, add, commit, log' };
+          }
+          break;
+        }
+
+        case 'alias': {
+          if (args.length === 0) {
+            res.out = Object.entries(state.aliases).map(([k, v]) => "alias " + k + "='" + v + "'").join('\n');
+          } else {
+            const joined = stage.slice('alias '.length).trim();
+            const eq = joined.indexOf('=');
+            if (eq === -1) {
+              res = { code: 1, out: '', err: "alias: use syntax alias name='command'" };
+            } else {
+              const name = joined.slice(0, eq).trim();
+              let val = joined.slice(eq + 1).trim();
+              if ((val.startsWith("'") && val.endsWith("'")) || (val.startsWith('"') && val.endsWith('"'))) {
+                val = val.slice(1, -1);
+              }
+              state.aliases[name] = val;
+              res.out = "Registered alias: " + name + " -> " + val;
+            }
+          }
+          break;
+        }
+
+        case 'export': {
+          const kv = args[0] || '';
+          const eq = kv.indexOf('=');
+          if (eq === -1) { res = { code: 1, out: '', err: 'export: use export KEY=VALUE' }; break; }
+          const k = kv.slice(0, eq);
+          const v = kv.slice(eq + 1);
+          state.env[k] = v;
+          res.out = 'Exported ' + k + '=' + v;
+          break;
+        }
+
+        case 'env':
+          res.out = Object.entries(state.env).map(([k, v]) => k + '=' + v).join('\n');
+          break;
+
+        case 'history':
+          res.out = state.history.map((h, i) => String(i + 1).padStart(3, ' ') + '  ' + h).join('\n');
+          break;
+
+        case 'gemini': {
+          state.agentActive = true;
+          if (args.includes('--version')) {
+            res.out = '@google/gemini-cli 0.24.0-' + state.channel + ' (Node 22 LTS)';
+          } else {
+            const pIdx = args.indexOf('-p');
+            const promptStr = pIdx !== -1 && args[pIdx + 1] ? args[pIdx + 1] : args.join(' ') || 'summarize workspace';
+            const stdinLines = stdinText ? stdinText.split('\n').filter(Boolean).length : 0;
+            res.out = [
+              '[gemini-cli:' + state.channel + '] Prompt: "' + promptStr + '" | Stdin lines: ' + stdinLines,
+              stdinLines > 0
+                ? 'Diagnosis: 3x E_TIMEOUT against edge-us-west (latency 612ms) and 2x E_AUTH_EXPIRED on oauth-7.\nNext action: inspect projects/api/nodes.json and rotate oauth-7 or fail over edge-us-west.'
+                : 'Workspace ready. Tip: pipe logs or git diff directly into `gemini -p "..."` for minimal-token diagnosis.'
+            ].join('\n');
+          }
+          break;
+        }
+
+        case 'agy': {
+          state.agentActive = true;
+          const sub = args[0] || 'status';
+          if (sub === 'status' || sub === '/doctor') {
+            res.out = [
+              'Antigravity CLI (agy) — Harness Status',
+              '  Workspace:   ~/foundry (git branch: ' + state.git.headBranch + ')',
+              '  Auth Layer:  Unified Google Account / Vertex Ready',
+              '  USB Bridge:  ' + (state.bridgeOnline ? 'CONNECTED (127.0.0.1:8420)' : 'Standby (run adb reverse tcp:8420 tcp:8420)'),
+              '  Portal:      https://antigravity.google'
+            ].join('\n');
+          } else if (sub === '/plan') {
+            res.out = 'Antigravity /plan initialized:\n  1. Audit projects/api/nodes.json degraded nodes\n  2. Verify projects/web/app.js retry guard\n  3. Sync state to Android Termux node (:8420)';
+          } else {
+            res.out = 'agy: try `agy status`, `agy /plan`, or `agy /doctor`';
+          }
+          break;
+        }
+
+        case 'adb': {
+          if (args[0] === 'reverse' && args.join(' ').includes('8420')) {
+            state.bridgeOnline = true;
+            res.out = '8420\n[+] USB tunnel established: Android Termux localhost:8420 <-> PC Workstation :8420';
+          } else if (args[0] === 'devices') {
+            res.out = 'List of devices attached\nANDROID_NODE_USB01\tdevice';
+          } else {
+            res.out = 'adb: try `adb devices` or `adb reverse tcp:8420 tcp:8420`';
+          }
+          break;
+        }
+
+        case 'aether-sync': {
+          if (state.bridgeOnline) {
+            res.out = '[+] USB ADB Neural Bridge CONNECTED to PC Workstation (:8420)\n{\n  "node": "Android-Termux-Bridge",\n  "channel": "' + state.channel + '",\n  "status": "synchronized"\n}';
+          } else {
+            res.out = '[*] Running in Standalone Sovereign Mobile Mode (tip: run `adb reverse tcp:8420 tcp:8420` first to link PC bridge)';
+          }
+          break;
+        }
+
+        case 'open-portal': {
+          goToChapter(7);
+          res.out = 'Opened Chapter 7: Sovereign Launchpad (18 HTTP-200 verified PC & Android portals).';
+          break;
+        }
+
+        default:
+          res = { code: 127, out: '', err: cmd + ': command not found (type `help` for available commands)' };
+      }
+
+      if (res.code === 0 && redirectFile) {
+        const fp = resolvePath(redirectFile);
+        const w = writeVfsFile(fp, res.out + '\n', redirectAppend);
+        if (!w.ok) return { code: 1, out: '', err: 'redirect: ' + w.err };
+        return { code: 0, out: '[wrote ' + res.out.split('\n').filter(Boolean).length + ' line(s) to ' + redirectFile + ']', err: '', redirectedTo: redirectFile };
+      }
+
+      return res;
+    }
+
+    function runCommandLine(rawLine, isSubcall) {
+      const trimmed = rawLine.trim();
+      if (!trimmed) return { code: 0, out: '', err: '' };
+
+      if (!isSubcall) {
+        state.history.push(trimmed);
+        state.historyPos = state.history.length;
+      }
+
+      const chainParts = splitTopLevel(trimmed, '&&');
+      const combinedOut = [];
+      let lastResult = { code: 0, out: '', err: '' };
+
+      for (const part of chainParts) {
+        const stages = splitTopLevel(part, '|');
+        let stream = '';
+        const trace = [];
+        let stageFailed = false;
+
+        for (const st of stages) {
+          const r = execSingleStage(st, stream);
+          if (r.clear) return r;
+          trace.push({
+            cmd: st,
+            lines: r.out ? r.out.split('\n').filter(Boolean).length : 0,
+            preview: (r.out || r.err || '').split('\n').slice(0, 5).join('\n')
+          });
+          if (r.code !== 0) {
+            lastResult = r;
+            stageFailed = true;
+            break;
+          }
+          stream = r.out;
+          lastResult = r;
+        }
+
+        if (stages.length > 1) {
+          state.lastPipeTrace = trace;
+        }
+
+        if (stageFailed) {
+          return lastResult;
+        }
+        if (stream) combinedOut.push(stream);
+      }
+
+      const finalRes = { code: 0, out: combinedOut.join('\n'), err: '' };
+      if (!isSubcall) {
+        evaluateMissions(trimmed, finalRes);
+      }
+      return finalRes;
+    }
+
+    // =========================================================================
+    // 7. MISSION EVALUATION ENGINE
+    // =========================================================================
+    function passMission(id, label) {
+      if (!state.completedMissions.has(id)) {
+        state.completedMissions.add(id);
+        persist();
+        showToast('Mission verified: ' + label);
+      }
+    }
+
+    function evaluateMissions(cmd, res) {
+      if (res.code !== 0) return;
+      const lower = cmd.toLowerCase();
+
+      // Chapter 1
+      if (/^ls\s+.*a/.test(lower) || lower === 'll') passMission('m1_hidden', 'Expose hidden dotfiles');
+      if ((lower.includes('rg ') || lower.includes('grep ')) && lower.includes('api_endpoint')) passMission('m1_search', 'X-ray search for API_ENDPOINT');
+      if (lower.startsWith('find ') && lower.includes('*.json')) passMission('m1_find', 'Locate every JSON manifest');
+
+      // Chapter 2
+      if (lower.includes('grep') && lower.includes('wc') && lower.includes('|')) passMission('m2_count', 'Count ERROR lines via pipe');
+      if (lower.includes('grep') && lower.includes('sort') && lower.includes('uniq')) passMission('m2_rank', 'Ranked error frequency pipeline');
+      if (lower.includes('>') && (lower.includes('error-report.txt') || lower.includes('.txt'))) passMission('m2_redirect', 'Persist report with > redirect');
+
+      // Chapter 3
+      if (lower.includes('curl') && lower.includes('nodes')) passMission('m3_curl', 'Query live telemetry API');
+      if (lower.includes('jq') && lower.includes('degraded')) passMission('m3_jq', 'Filter degraded nodes with jq');
+      if (lower.includes('sed') && lower.includes('deploy.conf') && state.vfs['/home/eloquent/foundry/projects/api/deploy.conf'].content.includes('production')) {
+        passMission('m3_sed', 'Promote deploy.conf in-place');
+      }
+
+      // Chapter 4
+      if (lower.includes('git status') || lower.includes('git diff')) passMission('m4_inspect', 'Audit working tree & diff');
+      if (state.git.headBranch !== 'main') passMission('m4_branch', 'Create isolated feature branch');
+      if (state.git.commits.length >= 3) passMission('m4_commit', 'Stage and commit verified change');
+
+      // Chapter 5
+      if (Object.keys(state.aliases).length > 1 && state.aliasInvoked) {
+        passMission('m5_alias', 'Create and invoke custom alias');
+      }
+      if (lower.includes('export ') && lower.includes('&&')) passMission('m5_env', 'Export env var in fail-fast chain');
+
+      // Chapter 6
+      if (lower.includes('|') && lower.includes('gemini')) passMission('m6_gemini', 'Pipe error logs into Gemini CLI');
+      if (lower.includes('agy ')) passMission('m6_agy', 'Inspect Antigravity CLI harness');
+      if (state.bridgeOnline && lower.includes('aether-sync')) passMission('m6_bridge', 'PC↔Android USB ADB Bridge live');
+    }
+
+    // =========================================================================
+    // 8. BOOTSTRAP SCRIPT & PLAYGROUND PROMPT GENERATORS
+    // =========================================================================
+    function buildBootstrapScript() {
+      const ch = state.channel;
+      const npmTag = ch === 'stable' ? '@latest' : (ch === 'preview' ? '@preview' : '@nightly');
+
+      if (state.platform === 'pc') {
+        return [
+          '# ==============================================================================',
+          '# LABEL:               Sovereign PC Terminal & Gemini/Antigravity Bootstrap',
+          '# USE:                 Install official Gemini CLI (' + ch + ' channel) and verify PC prerequisites.',
+          '# MECHANISM_OF_ACTION: Checks Node 20+ and Git, installs @google/gemini-cli' + npmTag + ' globally, and opens official Antigravity download page.',
+          '# ==============================================================================',
+          'node -v; git --version',
+          'npm install -g @google/gemini-cli' + npmTag,
+          'gemini --version',
+          '# Official Desktop Antigravity Installer: https://antigravity.google/download',
+          '# Run the companion practice sandbox:     pwsh ./scripts/Start-TerminalLab.ps1'
+        ].join('\n');
+      }
+
+      if (state.platform === 'android') {
+        return [
+          '#!/usr/bin/env bash',
+          '# ==============================================================================',
+          '# LABEL:               Android Termux Sovereign CLI Bootstrap (NDK-Safe)',
+          '# USE:                 Install Gemini CLI (' + ch + ') inside F-Droid Termux without hitting the Android NDK tree-sitter build trap.',
+          '# MECHANISM_OF_ACTION: Updates Termux packages, installs nodejs/git/python/jq, installs @google/gemini-cli' + npmTag + ' with --ignore-scripts.',
+          '# ==============================================================================',
+          'set -euo pipefail',
+          'pkg update -y && pkg upgrade -y',
+          'pkg install -y nodejs git python jq ripgrep openssh',
+          'npm install -g @google/gemini-cli' + npmTag + ' --ignore-scripts',
+          'gemini --version',
+          '# Source Termux APK strictly from F-Droid: https://f-droid.org/en/packages/com.termux/'
+        ].join('\n');
+      }
+
+      // Dual-Node Bridge
+      return [
+        '# ==============================================================================',
+        '# LABEL:               Dual-Node PC <-> Android Termux USB/Mesh Bridge',
+        '# USE:                 Link Windows PC workstation (:8420) to Android Termux over USB ADB with ' + ch + ' Gemini CLI on both nodes.',
+        '# MECHANISM_OF_ACTION: Installs @google/gemini-cli' + npmTag + ', establishes adb reverse tcp:8420 tcp:8420, and verifies connectivity.',
+        '# ==============================================================================',
+        '# [1] On PC (PowerShell):',
+        'npm install -g @google/gemini-cli' + npmTag,
+        'adb devices',
+        'adb reverse tcp:8420 tcp:8420',
+        '',
+        '# [2] On Android (F-Droid Termux):',
+        'pkg install -y nodejs git python jq ripgrep',
+        'npm install -g @google/gemini-cli' + npmTag + ' --ignore-scripts',
+        'bash ./scripts/start-termux-lab.sh'
+      ].join('\n');
+    }
+
+    function updateHandoffPrompt() {
+      const totalMissions = CHAPTERS.reduce((acc, c) => acc + c.missions.length, 0);
+      const done = state.completedMissions.size;
+      const chap = CHAPTERS.find(c => c.id === state.chapterId);
+      const platformText = state.platform === 'pc'
+        ? 'Windows/macOS/Linux PC'
+        : state.platform === 'android'
+          ? 'Android via F-Droid Termux (--ignore-scripts NDK fix)'
+          : 'Dual-Node PC workstation bridged to Android Termux over adb reverse tcp:8420';
+
+      const parts = [
+        `I am working through the Sovereign Terminal Foundry workshop (${done}/${totalMissions} interactive missions verified; currently in Chapter ${chap.id}: "${chap.title}").`,
+        `Configure my real ${platformText} workflow using the official Gemini CLI "${state.channel}" release channel and official Antigravity tooling.`
+      ];
+
+      if (done < totalMissions) {
+        const remaining = [];
+        CHAPTERS.forEach(c => c.missions.forEach(m => {
+          if (!state.completedMissions.has(m.id)) remaining.push(m.title);
+        }));
+        parts.push(`Focus coaching on the remaining skills: ${remaining.slice(0, 4).join(', ')}.`);
+      } else {
+        parts.push('All sandbox missions are complete—guide me through graduating onto real repositories and publishing an open-source showcase for official Google Developer Program / GDE recognition.');
+      }
+
+      document.getElementById('handoffPromptText').textContent = parts.join(' ');
+    }
+
+    // =========================================================================
+    // 9. RENDERING ENGINE
+    // =========================================================================
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => el.classList.remove('show'), 2600);
+    }
+
+    function copyText(text, label) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast(label || 'Copied to clipboard'));
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast(label || 'Copied to clipboard');
+      }
+    }
+
+    function appendTermLine(text, cls) {
+      const out = document.getElementById('termOutput');
+      const div = document.createElement('div');
+      div.className = 'term-line ' + (cls || 'out');
+      div.textContent = text;
+      out.appendChild(div);
+      out.scrollTop = out.scrollHeight;
+    }
+
+    function appendPromptEcho(cmd) {
+      const out = document.getElementById('termOutput');
+      const div = document.createElement('div');
+      div.className = 'term-line cmd';
+      const u = document.createElement('span');
+      u.className = 'p-user';
+      u.textContent = state.env.USER;
+      const sep = document.createTextNode(':');
+      const c = document.createElement('span');
+      c.className = 'p-cwd';
+      c.textContent = shortCwd();
+      const tail = document.createTextNode('$ ' + cmd);
+      div.append(u, sep, c, tail);
+      out.appendChild(div);
+      out.scrollTop = out.scrollHeight;
+    }
+
+    function executeAndRender(cmd) {
+      const clean = cmd.trim();
+      if (!clean) return;
+      appendPromptEcho(clean);
+      const res = runCommandLine(clean, false);
+      if (res.clear) {
+        document.getElementById('termOutput').innerHTML = '';
+      } else {
+        if (res.out) appendTermLine(res.out, res.code === 0 ? 'out' : 'err');
+        if (res.err) appendTermLine(res.err, 'err');
+      }
+      updateAll();
+    }
+
+    function renderStepper() {
+      const nav = document.getElementById('chapterStepper');
+      nav.innerHTML = '';
+      CHAPTERS.forEach(c => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const allDone = c.missions.length > 0 && c.missions.every(m => state.completedMissions.has(m.id));
+        btn.className = 'step-btn' + (c.id === state.chapterId ? ' active' : '') + (allDone ? ' done' : '');
+        btn.innerHTML = `<span class="step-num">${allDone ? '✓' : '0' + c.id}</span><span>${c.short}</span>`;
+        btn.addEventListener('click', () => goToChapter(c.id));
+        nav.appendChild(btn);
+      });
+
+      const total = CHAPTERS.reduce((a, c) => a + c.missions.length, 0);
+      const done = state.completedMissions.size;
+      document.getElementById('progressFill').style.width = Math.round((done / total) * 100) + '%';
+      document.getElementById('progressLabel').textContent = done + '/' + total;
+    }
+
+    function renderNarrative() {
+      const c = CHAPTERS.find(x => x.id === state.chapterId);
+      const pane = document.getElementById('narrativePane');
+      const safeTokIdx = Math.min(state.selectedTokenIdx, c.anatomy.length - 1);
+      const activeTok = c.anatomy[safeTokIdx];
+
+      const missionsHtml = c.missions.length ? `
+        <div>
+          <div class="section-heading">
+            <span>Hands-on terminal missions</span>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-muted);">
+              ${c.missions.filter(m => state.completedMissions.has(m.id)).length}/${c.missions.length} verified
+            </span>
+          </div>
+          <div class="mission-list">
+            ${c.missions.map((m, idx) => {
+              const passed = state.completedMissions.has(m.id);
+              return `
+                <div class="mission-item ${passed ? 'passed' : ''}">
+                  <div class="mission-top">
+                    <div class="mission-check">
+                      <span class="status-dot">${passed ? '✓' : (idx + 1)}</span>
+                      <div>
+                        <div class="mission-title">${m.title}</div>
+                        <div class="mission-desc">${m.desc}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mission-actions">
+                    <button type="button" class="btn-sm" data-run-cmd="${escapeAttr(m.sampleCmd)}">Run example</button>
+                    <button type="button" class="btn-sm" data-insert-cmd="${escapeAttr(m.sampleCmd)}">Load in prompt</button>
+                    <button type="button" class="ghost-btn" data-toggle-hint="hint-${m.id}">Hint</button>
+                  </div>
+                  <div class="hint-box" id="hint-${m.id}">${escapeHtml(m.hint)}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      ` : `
+        <div class="honest-banner">
+          <strong>Transparent Access Scope:</strong> Private, invite-only internal Google alpha/beta portals cannot be generated or unlocked by an AI assistant. Every portal in this launchpad is an <strong>HTTP-200 verified official public download, Preview/Nightly release channel, open-source repository, or official developer recognition track</strong>.
+        </div>
+      `;
+
+      pane.innerHTML = `
+        <div class="chapter-head">
+          <span class="chapter-seq">Chapter 0${c.id} of 0${CHAPTERS.length}</span>
+          <h2 class="chapter-title">${c.title}</h2>
+          <p class="chapter-sub">${c.subtitle}</p>
+        </div>
+
+        <article class="bookend-card bookend-start">
+          <div class="bookend-head">
+            <span class="bookend-tag">Chapter Start: What the terminal unlocks</span>
+            <span class="time-badge">${c.openingSuperpower.badge}</span>
+          </div>
+          <h3>${c.openingSuperpower.headline}</h3>
+          <p>${c.openingSuperpower.body}</p>
+        </article>
+
+        <div class="anatomy-panel">
+          <div class="section-heading">
+            <span>Command anatomy dissector (click any token)</span>
+          </div>
+          <div class="token-row">
+            ${c.anatomy.map((item, i) => `
+              <button type="button" class="token-pill ${i === safeTokIdx ? 'selected' : ''}" data-tok-idx="${i}">${escapeHtml(item.tok)}</button>
+            `).join('')}
+          </div>
+          <div class="token-explain">
+            <strong>${escapeHtml(activeTok.tok)}</strong> — ${escapeHtml(activeTok.detail)}
+          </div>
+        </div>
+
+        ${missionsHtml}
+
+        <article class="bookend-card bookend-end">
+          <div class="bookend-head">
+            <span class="bookend-tag">Chapter End: ${c.closingPayoff.badge}</span>
+          </div>
+          <h3>${c.closingPayoff.headline}</h3>
+          <p>${c.closingPayoff.body}</p>
+          <div class="payoff-cmd-box">
+            <code>${escapeHtml(c.closingPayoff.realCmd)}</code>
+            <button type="button" class="btn-sm" id="copyPayoffCmdBtn">Copy for real shell</button>
+          </div>
+        </article>
+
+        <div class="chapter-nav">
+          <button type="button" class="btn-sm" id="prevChapBtn" ${c.id === 1 ? 'disabled style="opacity:0.45;cursor:not-allowed;"' : ''}>Previous chapter</button>
+          <button type="button" class="btn-sm btn-primary" id="nextChapBtn" ${c.id === CHAPTERS.length ? 'style="display:none;"' : ''}>Next chapter: 0${Math.min(CHAPTERS.length, c.id + 1)}</button>
+        </div>
+      `;
+
+      // Bind interactive listeners
+      pane.querySelectorAll('[data-tok-idx]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.selectedTokenIdx = Number(btn.getAttribute('data-tok-idx'));
+          renderNarrative();
+        });
+      });
+
+      pane.querySelectorAll('[data-run-cmd]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          executeAndRender(btn.getAttribute('data-run-cmd'));
+          document.getElementById('termInput').focus();
+        });
+      });
+
+      pane.querySelectorAll('[data-insert-cmd]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const inp = document.getElementById('termInput');
+          inp.value = btn.getAttribute('data-insert-cmd');
+          inp.focus();
+        });
+      });
+
+      pane.querySelectorAll('[data-toggle-hint]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const box = document.getElementById(btn.getAttribute('data-toggle-hint'));
+          if (box) box.classList.toggle('open');
+        });
+      });
+
+      const copyPayoff = document.getElementById('copyPayoffCmdBtn');
+      if (copyPayoff) {
+        copyPayoff.addEventListener('click', () => copyText(c.closingPayoff.realCmd.split('   #')[0], 'Real-shell command copied'));
+      }
+
+      const prevBtn = document.getElementById('prevChapBtn');
+      if (prevBtn && c.id > 1) prevBtn.addEventListener('click', () => goToChapter(c.id - 1));
+      const nextBtn = document.getElementById('nextChapBtn');
+      if (nextBtn && c.id < CHAPTERS.length) nextBtn.addEventListener('click', () => goToChapter(c.id + 1));
+    }
+
+    function renderQuickChips() {
+      const c = CHAPTERS.find(x => x.id === state.chapterId);
+      const bar = document.getElementById('quickChips');
+      bar.innerHTML = '<span class="chip-label">Try:</span>';
+      c.chips.forEach(cmd => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'cmd-chip';
+        b.textContent = cmd;
+        b.addEventListener('click', () => {
+          executeAndRender(cmd);
+          document.getElementById('termInput').focus();
+        });
+        bar.appendChild(b);
+      });
+    }
+
+    function renderLiveLab() {
+      const c = CHAPTERS.find(x => x.id === state.chapterId);
+      const panel = document.getElementById('liveLabPanel');
+
+      if (c.labType === 'race') {
+        const cliMs = state.lastCliMs || 38;
+        const ranSearch = state.completedMissions.has('m1_search');
+        panel.innerHTML = `
+          <div class="lab-header">
+            <h3>Live Visual Lab: GUI Click-Tax vs. Terminal Speed</h3>
+            <span class="lab-sub">${ranSearch ? 'Measured from your live rg/grep run' : 'Run rg "API_ENDPOINT" projects/ to record your speed'}</span>
+          </div>
+          <div class="race-grid">
+            <div class="race-card">
+              <h4>Manual GUI Explorer Hunt</h4>
+              <div class="race-metric">135,000 ms</div>
+              <div class="lab-sub">7 folder double-clicks + toggle hidden files + open 5 tabs + 5× Ctrl+F</div>
+              <div class="race-bar"><div class="race-bar-fill" style="width:100%;"></div></div>
+            </div>
+            <div class="race-card cli">
+              <h4>Terminal X-Ray (rg)</h4>
+              <div class="race-metric">${ranSearch ? cliMs + ' ms' : 'Waiting...'}</div>
+              <div class="lab-sub">1 command, 0 mouse clicks, exact file:line coordinates</div>
+              <div class="race-bar"><div class="race-bar-fill" style="width:${ranSearch ? '4%' : '0%'};"></div></div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      if (c.labType === 'pipes') {
+        const trace = state.lastPipeTrace || [
+          { cmd: 'grep "ERROR" projects/api/server.log', lines: 6, preview: 'Run a piped command above to watch\neach stage transform data live...' },
+          { cmd: 'sort', lines: 6, preview: '(groups matching events)' },
+          { cmd: 'uniq -c', lines: 3, preview: '(counts duplicates)' }
+        ];
+        panel.innerHTML = `
+          <div class="lab-header">
+            <h3>Live Visual Lab: Pipe Stream Inspector</h3>
+            <span class="lab-sub">${state.lastPipeTrace ? 'Captured from your latest pipeline execution' : 'Waiting for a command containing |'}</span>
+          </div>
+          <div class="pipe-stages">
+            ${trace.map((st, idx) => `
+              <div class="pipe-stage">
+                <div class="pipe-stage-cmd">Stage ${idx + 1}: ${escapeHtml(st.cmd)}</div>
+                <div class="pipe-stage-count">${st.lines} output line(s)</div>
+                <pre>${escapeHtml(st.preview || '(empty)')}</pre>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        return;
+      }
+
+      if (c.labType === 'json') {
+        const nodes = (state.lastJsonData && state.lastJsonData.nodes) || JSON.parse(state.vfs['/home/eloquent/foundry/projects/api/nodes.json'].content).nodes;
+        const deployText = state.vfs['/home/eloquent/foundry/projects/api/deploy.conf'].content.trim();
+        panel.innerHTML = `
+          <div class="lab-header">
+            <h3>Live Visual Lab: Cluster Telemetry &amp; deploy.conf State</h3>
+            <span class="lab-sub">Updates live as you curl, jq, and sed</span>
+          </div>
+          <div class="portal-grid">
+            ${nodes.map(n => `
+              <div class="portal-item" style="border-color:${n.status === 'degraded' ? 'rgba(224,108,101,0.55)' : 'rgba(88,184,138,0.45)'};">
+                <div class="portal-head">
+                  <span class="portal-name">${escapeHtml(n.name)}</span>
+                  <span class="channel-pill ${n.status === 'degraded' ? 'preview' : 'android'}">${escapeHtml(n.status)}</span>
+                </div>
+                <p class="portal-desc">Role: ${escapeHtml(n.role)} &bull; Latency: ${n.latency_ms}ms</p>
+              </div>
+            `).join('')}
+          </div>
+          <div class="payoff-cmd-box" style="margin-top:4px;">
+            <code>projects/api/deploy.conf =&gt; ${escapeHtml(deployText.replace(/\n/g, ' | '))}</code>
+          </div>
+        `;
+        return;
+      }
+
+      if (c.labType === 'git') {
+        const g = state.git;
+        const width = Math.max(480, g.commits.length * 145 + 100);
+        const circles = g.commits.map((cm, idx) => {
+          const x = 60 + idx * 140;
+          const y = cm.branch === 'main' ? 54 : 112;
+          const prevIdx = g.commits.findIndex(p => p.hash === cm.parent);
+          let edge = '';
+          if (prevIdx !== -1) {
+            const px = 60 + prevIdx * 140;
+            const py = g.commits[prevIdx].branch === 'main' ? 54 : 112;
+            edge = `<path d="M ${px} ${py} C ${(px + x) / 2} ${py}, ${(px + x) / 2} ${y}, ${x} ${y}" stroke="#4fa3e0" stroke-width="2.5" fill="none" />`;
+          }
+          const refs = Object.entries(g.branches).filter(([, h]) => h === cm.hash).map(([b]) => (b === g.headBranch ? 'HEAD→' + b : b));
+          const color = cm.branch === 'main' ? '#e8a44c' : '#58b88a';
+          return `
+            ${edge}
+            <circle cx="${x}" cy="${y}" r="12" fill="#0a0f15" stroke="${color}" stroke-width="3" />
+            <text x="${x}" y="${y + 28}" fill="#e6edf5" font-family="monospace" font-size="11" text-anchor="middle">${cm.hash}</text>
+            <text x="${x}" y="${y + 42}" fill="#7f93ab" font-family="sans-serif" font-size="10.5" text-anchor="middle">${escapeHtml(cm.msg.slice(0, 22))}</text>
+            ${refs.length ? `<text x="${x}" y="${y - 19}" fill="${color}" font-family="monospace" font-size="11" font-weight="700" text-anchor="middle">${escapeHtml(refs.join(' '))}</text>` : ''}
+          `;
+        }).join('');
+
+        panel.innerHTML = `
+          <div class="lab-header">
+            <h3>Live Visual Lab: Real-Time Git Commit Graph (DAG)</h3>
+            <span class="lab-sub">HEAD: ${escapeHtml(g.headBranch)} &bull; Staged: ${g.staged.length} &bull; Modified: ${Object.keys(g.modified).length}</span>
+          </div>
+          <div class="git-svg-wrap">
+            <svg width="${width}" height="168" viewBox="0 0 ${width} 168" role="img" aria-label="Git commit graph">${circles}</svg>
+          </div>
+        `;
+        return;
+      }
+
+      if (c.labType === 'reflex') {
+        const drills = [
+          { task: 'Open reverse history search without touching the arrow keys', key: 'r', ctrl: true, label: 'Ctrl + R' },
+          { task: 'Jump cursor immediately to the start of the command line', key: 'a', ctrl: true, label: 'Ctrl + A' },
+          { task: 'Jump cursor immediately to the end of the command line', key: 'e', ctrl: true, label: 'Ctrl + E' },
+          { task: 'Clear a cluttered terminal screen in one chord', key: 'l', ctrl: true, label: 'Ctrl + L' }
+        ];
+        const cur = drills[Math.min(state.reflexIndex, drills.length - 1)];
+        panel.innerHTML = `
+          <div class="lab-header">
+            <h3>Live Visual Lab: Terminal Shortcut Reflex Arena</h3>
+            <span class="lab-sub">${state.reflexPassed ? 'All 4 reflexes verified!' : 'Step ' + (state.reflexIndex + 1) + ' of ' + drills.length}</span>
+          </div>
+          <div class="reflex-box">
+            ${state.reflexPassed ? `
+              <div class="reflex-prompt" style="color:var(--accent-sage);">Muscle memory locked in. All 4 universal terminal chords verified.</div>
+              <div><button type="button" class="btn-sm" id="restartReflexBtn">Replay drill</button></div>
+            ` : `
+              <div class="reflex-prompt">${cur.task}</div>
+              <div class="lab-sub">Target chord: <span class="kbd">${cur.label}</span> (press the real keys on your keyboard now, or click Simulate on mobile)</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="btn-sm btn-primary" id="armReflexBtn">${state.reflexActive ? 'Listening for keyboard chord...' : 'Arm keyboard listener'}</button>
+                <button type="button" class="btn-sm" id="simReflexBtn">Simulate ${cur.label}</button>
+              </div>
+            `}
+          </div>
+        `;
+
+        const armBtn = document.getElementById('armReflexBtn');
+        if (armBtn) {
+          armBtn.addEventListener('click', () => {
+            state.reflexActive = true;
+            renderLiveLab();
+          });
+        }
+        const simBtn = document.getElementById('simReflexBtn');
+        if (simBtn) {
+          simBtn.addEventListener('click', () => advanceReflex());
+        }
+        const repBtn = document.getElementById('restartReflexBtn');
+        if (repBtn) {
+          repBtn.addEventListener('click', () => {
+            state.reflexIndex = 0;
+            state.reflexPassed = false;
+            state.reflexActive = true;
+            renderLiveLab();
+          });
+        }
+        return;
+      }
+
+      if (c.labType === 'bridge') {
+        panel.innerHTML = `
+          <div class="lab-header">
+            <h3>Live Visual Lab: Dual-Node PC ↔ Android Sovereign Topology</h3>
+            <span class="lab-sub">Run gemini, agy, and adb reverse above to activate nodes</span>
+          </div>
+          <div class="topology-grid">
+            <div class="node-box ${state.agentActive ? 'active-link' : ''}">
+              <strong style="color:var(--accent-amber);">PC Workstation (Windows/Linux/macOS)</strong>
+              <p style="margin:6px 0 0;color:var(--ink-secondary);">Antigravity CLI (agy) &bull; Gemini CLI<br/>Local API Bridge :8420<br/>Status: ${state.agentActive ? '<span style="color:var(--accent-sage);">Agent Harness Active</span>' : 'Idle'}</p>
+            </div>
+            <div class="bridge-pipe ${state.bridgeOnline ? 'live' : ''}">
+              ${state.bridgeOnline ? 'USB ADB LIVE<br/>127.0.0.1:8420' : 'Tunnel Standby<br/>adb reverse :8420'}
+            </div>
+            <div class="node-box ${state.bridgeOnline ? 'active-link' : ''}">
+              <strong style="color:var(--accent-sage);">Android Pocket Node (F-Droid Termux)</strong>
+              <p style="margin:6px 0 0;color:var(--ink-secondary);">@google/gemini-cli (--ignore-scripts)<br/>Offline Python/Node Kernel + Tailscale SSH<br/>Status: ${state.bridgeOnline ? '<span style="color:var(--accent-sage);">Synchronized</span>' : 'Standalone Mode'}</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // Chapter 7: Sovereign Launchpad
+      const filteredPortals = PORTALS.filter(p => p.platform.includes(state.platform));
+      const bootstrapCode = buildBootstrapScript();
+
+      panel.innerHTML = `
+        <div class="lab-header">
+          <h3>Sovereign Launchpad: Verified PC &amp; Android Portals</h3>
+          <span class="lab-sub">${filteredPortals.length} live HTTP-200 official links shown</span>
+        </div>
+
+        <div class="config-controls">
+          <div class="seg-group" role="group" aria-label="Target platform">
+            <button type="button" class="seg-btn ${state.platform === 'pc' ? 'active' : ''}" data-set-plat="pc">PC (Windows / macOS / Linux)</button>
+            <button type="button" class="seg-btn ${state.platform === 'android' ? 'active' : ''}" data-set-plat="android">Android (Termux Sovereign)</button>
+            <button type="button" class="seg-btn ${state.platform === 'bridge' ? 'active' : ''}" data-set-plat="bridge">Dual-Node PC + Android</button>
+          </div>
+          <div class="seg-group" role="group" aria-label="Gemini CLI release channel">
+            <button type="button" class="seg-btn ${state.channel === 'stable' ? 'active' : ''}" data-set-ch="stable">@latest (Stable)</button>
+            <button type="button" class="seg-btn ${state.channel === 'preview' ? 'active' : ''}" data-set-ch="preview">@preview (Weekly)</button>
+            <button type="button" class="seg-btn ${state.channel === 'nightly' ? 'active' : ''}" data-set-ch="nightly">@nightly (Daily Main)</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-heading">
+            <span>Generated Bootstrap Script (${state.platform.toUpperCase()} &bull; ${state.channel})</span>
+            <div style="display:flex;gap:6px;">
+              <button type="button" class="btn-sm btn-primary" id="copyBootstrapBtn">Copy script</button>
+              <button type="button" class="btn-sm" id="downloadBootstrapBtn">Download file</button>
+            </div>
+          </div>
+          <pre class="code-export" id="bootstrapCodeBox">${escapeHtml(bootstrapCode)}</pre>
+        </div>
+
+        <div class="portal-grid">
+          ${filteredPortals.map(p => `
+            <div class="portal-item">
+              <div class="portal-head">
+                <span class="portal-name">${escapeHtml(p.name)}</span>
+                <span class="channel-pill ${p.channelClass}">${escapeHtml(p.channel)}</span>
+              </div>
+              <p class="portal-desc">${escapeHtml(p.desc)}</p>
+              <div class="portal-footer">
+                <span class="http-tag">${p.http}</span>
+                <a href="${p.url}" target="_blank" rel="noopener noreferrer">Open portal</a>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      panel.querySelectorAll('[data-set-plat]').forEach(b => {
+        b.addEventListener('click', () => {
+          state.platform = b.getAttribute('data-set-plat');
+          persist();
+          updateAll();
+        });
+      });
+
+      panel.querySelectorAll('[data-set-ch]').forEach(b => {
+        b.addEventListener('click', () => {
+          state.channel = b.getAttribute('data-set-ch');
+          state.env.GEMINI_CHANNEL = state.channel;
+          persist();
+          updateAll();
+        });
+      });
+
+      document.getElementById('copyBootstrapBtn').addEventListener('click', () => {
+        copyText(bootstrapCode, 'Bootstrap script copied');
+      });
+
+      document.getElementById('downloadBootstrapBtn').addEventListener('click', () => {
+        const ext = state.platform === 'android' ? 'sh' : 'ps1';
+        const blob = new Blob([bootstrapCode + '\n'], { type: 'text/plain;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `sovereign-bootstrap-${state.platform}-${state.channel}.${ext}`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast('Downloaded ' + a.download);
+      });
+    }
+
+    function advanceReflex() {
+      state.reflexIndex++;
+      if (state.reflexIndex >= 4) {
+        state.reflexPassed = true;
+        state.reflexActive = false;
+        passMission('m5_reflex', 'Terminal Shortcut Reflex Arena');
+      }
+      updateAll();
+    }
+
+    function goToChapter(id) {
+      state.chapterId = id;
+      state.selectedTokenIdx = 0;
+      persist();
+      updateAll();
+    }
+
+    function updateAll() {
+      document.getElementById('termPromptLabel').innerHTML = `${escapeHtml(state.env.USER)}<span>:${escapeHtml(shortCwd())}</span>$`;
+      renderStepper();
+      renderNarrative();
+      renderQuickChips();
+      renderLiveLab();
+      updateHandoffPrompt();
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function escapeAttr(s) {
+      return escapeHtml(s).replace(/"/g, '&quot;');
+    }
+
+    // =========================================================================
+    // 10. KEYBOARD, AUTOCOMPLETE, REVERSE SEARCH & FORM BINDINGS
+    // =========================================================================
+    const KNOWN_CMDS = [
+      'help', 'clear', 'pwd', 'whoami', 'uname', 'ls', 'cd', 'tree', 'cat', 'echo',
+      'mkdir', 'touch', 'find', 'rg', 'grep', 'sort', 'uniq', 'cut', 'wc', 'head',
+      'tail', 'curl', 'jq', 'sed', 'git', 'alias', 'export', 'env', 'history',
+      'gemini', 'agy', 'adb', 'aether-sync', 'open-portal'
+    ];
+
+    const termInput = document.getElementById('termInput');
+    const revBar = document.getElementById('reverseSearchBar');
+    const revInput = document.getElementById('reverseSearchInput');
+    const revMatch = document.getElementById('reverseSearchMatch');
+
+    function closeReverseSearch(accept) {
+      if (accept && revMatch.textContent) {
+        termInput.value = revMatch.textContent;
+      }
+      revBar.classList.remove('open');
+      revInput.value = '';
+      revMatch.textContent = '';
+      termInput.focus();
+    }
+
+    revInput.addEventListener('input', () => {
+      const q = revInput.value.toLowerCase();
+      const found = state.history.slice().reverse().find(h => h.toLowerCase().includes(q));
+      revMatch.textContent = found || '';
+    });
+
+    revInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        closeReverseSearch(true);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        closeReverseSearch(false);
+      }
+    });
+
+    document.getElementById('termForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const val = termInput.value;
+      termInput.value = '';
+      executeAndRender(val);
+    });
+
+    termInput.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (state.historyPos > 0) {
+          state.historyPos--;
+          termInput.value = state.history[state.historyPos] || '';
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (state.historyPos < state.history.length - 1) {
+          state.historyPos++;
+          termInput.value = state.history[state.historyPos] || '';
+        } else {
+          state.historyPos = state.history.length;
+          termInput.value = '';
+        }
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        const val = termInput.value;
+        const parts = val.split(/\s+/);
+        const last = parts[parts.length - 1] || '';
+        if (parts.length <= 1) {
+          const hit = KNOWN_CMDS.find(c => c.startsWith(last));
+          if (hit) termInput.value = hit + ' ';
+        } else {
+          const dirNode = state.vfs[state.cwd];
+          const candidates = (dirNode ? dirNode.children : []).concat(['projects/api/server.log', 'projects/api/deploy.conf', 'projects/api/nodes.json', 'projects/web/app.js']);
+          const hit = candidates.find(c => c.startsWith(last));
+          if (hit) {
+            parts[parts.length - 1] = hit;
+            termInput.value = parts.join(' ');
+          }
+        }
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        document.getElementById('termOutput').innerHTML = '';
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        revBar.classList.add('open');
+        revInput.focus();
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        termInput.setSelectionRange(0, 0);
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'e') {
+        e.preventDefault();
+        termInput.setSelectionRange(termInput.value.length, termInput.value.length);
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'w') {
+        e.preventDefault();
+        termInput.value = termInput.value.replace(/\s*\S+\s*$/, '');
+      }
+    });
+
+    // Global Reflex Arena keyboard listener
+    window.addEventListener('keydown', e => {
+      if (state.chapterId !== 5 || !state.reflexActive || state.reflexPassed) return;
+      const expectedKeys = ['r', 'a', 'e', 'l'];
+      const want = expectedKeys[state.reflexIndex];
+      if (e.ctrlKey && e.key.toLowerCase() === want) {
+        e.preventDefault();
+        showToast('Reflex hit: Ctrl + ' + want.toUpperCase());
+        advanceReflex();
+      }
+    });
+
+    // Toolbar & Dock buttons
+    document.getElementById('btnHelpCmd').addEventListener('click', () => executeAndRender('help'));
+    document.getElementById('btnTreeCmd').addEventListener('click', () => executeAndRender('tree'));
+    document.getElementById('btnClearCmd').addEventListener('click', () => executeAndRender('clear'));
+    document.getElementById('copyPromptBtn').addEventListener('click', () => {
+      copyText(document.getElementById('handoffPromptText').textContent, 'Agent handoff prompt copied');
+    });
+    document.getElementById('jumpLaunchpadBtn').addEventListener('click', () => goToChapter(7));
+    document.getElementById('resetProgressBtn').addEventListener('click', () => {
+      state.completedMissions.clear();
+      state.vfs = createInitialVFS();
+      state.git = createInitialGit();
+      state.cwd = '/home/eloquent/foundry';
+      state.aliases = { ll: 'ls -la' };
+      state.aliasInvoked = false;
+      state.bridgeOnline = false;
+      state.agentActive = false;
+      state.lastPipeTrace = null;
+      state.reflexIndex = 0;
+      state.reflexPassed = false;
+      state.chapterId = 1;
+      persist();
+      document.getElementById('termOutput').innerHTML = '';
+      appendTermLine('Sandbox reset to clean initial state. Type `help` or click any mission example.', 'sys');
+      updateAll();
+      showToast('Lab reset');
+    });
+
+    // Expose safe verification hook on window for automated headless testing
+    window.__FOUNDRY__ = { state, runCommandLine, goToChapter, PORTALS, CHAPTERS, buildBootstrapScript };
+
+    // Initial boot banner
+    appendTermLine('Sovereign Terminal Foundry v1.0 — Interactive Sandbox (Authored by Eloquent)', 'ok');
+    appendTermLine('Type real commands (pipes |, redirects >, git, jq, sed, gemini, agy, adb) or click a mission button.', 'sys');
+    updateAll();
+  })();
+  </script>
+</body>
+</html>
